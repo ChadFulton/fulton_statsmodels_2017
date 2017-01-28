@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Abstract &mdash; State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Introduction" href="1-introduction.html" />
+    <link rel="prev" title="Estimating time series models by state space methods in Python: Statsmodels" href="../index.html" /><!--<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>-->
+<link href="../_static/google-fonts.css" rel="stylesheet">
+<link href="../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="1-introduction.html" title="Introduction"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Estimating time series models by state space methods in Python: Statsmodels"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../index.html"
+                        title="previous chapter">Estimating time series models by state space methods in Python: Statsmodels</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="1-introduction.html"
+                        title="next chapter">Introduction</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/sections/0-abstract.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="abstract">
+<h1>Abstract<a class="headerlink" href="#abstract" title="Permalink to this headline">¶</a></h1>
+<p>This paper describes an object oriented approach to the estimation of time
+series models using state space methods and presents an implementation in the
+Python programming language. This approach at once allows for fast computation,
+a variety of out-of-the-box features, and easy extensibility. We show how to
+construct a custom state space model, retrieve filtered and smoothed estimates
+of the unobserved state, and perform parameter estimation using classical and
+Bayesian methods. The mapping from theory to implementation is presented
+explicitly and is illustrated at each step by the development of three example
+models: an ARMA(1,1) model, the local level model, and a simple real
+business cycle macroeconomic model. Finally, four fully implemented time
+series models are presented: SARIMAX, VARMAX, unobserved components, and
+dynamic factor models. These models can immediately be applied by users. <a class="footnote-reference" href="#id2" id="id1">[1]</a></p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>I thank Josef Perktold for many helpful discussions. Financial support
+from the Google Summer of Code program and the University of Oregon
+Kleinsorge Fellowship, Department of Economics, is gratefully
+acknowledged.</td></tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="1-introduction.html" title="Introduction"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Estimating time series models by state space methods in Python: Statsmodels"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Chad Fulton.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.4.4.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

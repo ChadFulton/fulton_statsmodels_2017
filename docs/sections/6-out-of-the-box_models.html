@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Out-of-the-box models &mdash; State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Conclusion" href="7-conclusion.html" />
+    <link rel="prev" title="Posterior Simulation" href="5-posterior_simulation.html" /><!--<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>-->
+<link href="../_static/google-fonts.css" rel="stylesheet">
+<link href="../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="7-conclusion.html" title="Conclusion"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="5-posterior_simulation.html" title="Posterior Simulation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Out-of-the-box models</a><ul>
+<li><a class="reference internal" href="#sarimax">SARIMAX</a></li>
+<li><a class="reference internal" href="#unobserved-components">Unobserved components</a></li>
+<li><a class="reference internal" href="#var">VAR</a></li>
+<li><a class="reference internal" href="#dynamic-factors">Dynamic factors</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="5-posterior_simulation.html"
+                        title="previous chapter">Posterior Simulation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="7-conclusion.html"
+                        title="next chapter">Conclusion</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/sections/6-out-of-the-box_models.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="out-of-the-box-models">
+<span id="id1"></span><h1>Out-of-the-box models<a class="headerlink" href="#out-of-the-box-models" title="Permalink to this headline">¶</a></h1>
+<p>This paper has focused on demonstrating the creation of classes to specify
+and estimate arbitrary state space models. However, it is worth noting that
+classes implementing state space models for four of the most popular models in
+time series analysis are built in. These classes have been created
+exactly as described above (e.g. they are all subclasses of
+<code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code>), and can be used directly or even extended with
+their own subclasses. The source code is available, so that they also serve as
+advanced examples of what can be accomplished in this framework.</p>
+<p>Maximum likelihood estimation is available immediately simply by calling the
+<code class="docutils literal"><span class="pre">fit</span></code> method. Features include the calculation of reasonable starting values,
+the use of appropriate parameter transformations, and enhanced results classes.
+Bayesian estimation via posterior simulation can be performed as described
+in this paper by taking advantage of the <code class="docutils literal"><span class="pre">loglike</span></code> method and the simulation
+smoother. Of course the selection of priors, parameter blocking, etc. must be
+manually implemented, as above.</p>
+<p>In this section, we briefly describe each time series model and provide
+examples.</p>
+<div class="section" id="sarimax">
+<h2>SARIMAX<a class="headerlink" href="#sarimax" title="Permalink to this headline">¶</a></h2>
+<p>The seasonal autoregressive integrated moving-average with exogenous regressors
+(SARIMAX) model is a generalization of the familiar ARIMA model to allow for
+seasonal effects and explanatory variables. It is typically denoted
+SARIMAX <span class="math">\((p,d,q)\times(P,D,Q,s)\)</span> and can be written as</p>
+<div class="math">
+\[\begin{split}y_t &amp; = \beta_t x_t + u_t \\
+\phi_p (L) \tilde \phi_P (L^s) \Delta^d \Delta_s^D u_t &amp; = A(t) +
+    \theta_q (L) \tilde \theta_Q (L^s) \zeta_t\end{split}\]</div>
+<p>where <span class="math">\(y_t\)</span> is the observed time series and <span class="math">\(x_t\)</span> are explanatory
+regressors. <span class="math">\(\phi_p(L), \tilde \phi_P(L^s), \theta_q(L),\)</span> and
+<span class="math">\(\tilde \theta_Q(L^s)\)</span> are lag polynomials and <span class="math">\(\Delta^d\)</span> is the
+differencing operator <span class="math">\(\Delta\)</span>, applied <span class="math">\(d\)</span> times. This model is
+sometimes described as regression with SARIMA errors.</p>
+<p>It is straightforward to apply this model to data by creating an instance of
+the class <code class="docutils literal"><span class="pre">sm.tsa.SARIMAX</span></code>. For example, if we wanted to estimate an
+ARMA(1,1) model for US CPI inflation data using this class, the following
+code could be used</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">model_1</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">tsa</span><span class="o">.</span><span class="n">SARIMAX</span><span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">results_1</span> <span class="o">=</span> <span class="n">model_1</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model_1</span><span class="o">.</span><span class="n">loglike</span><span class="p">(</span><span class="n">results_1</span><span class="o">.</span><span class="n">params</span><span class="p">))</span>  <span class="c1"># -432.375194381</span>
+</pre></div>
+</div>
+<p>We can also extend this example to take into account annual seasonality.
+Below we estimate an SARIMA(1,0,1)x(1,0,1,12) model. This model achieves a
+lower value for the Akaike information criterion (AIC), which indicates a
+potentially better fit. <a class="footnote-reference" href="#id3" id="id2">[1]</a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">model_2</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">tsa</span><span class="o">.</span><span class="n">SARIMAX</span><span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">seasonal_order</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="n">results_2</span> <span class="o">=</span> <span class="n">model_2</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+
+<span class="c1"># Compare the two models on the basis of the Akaike information criterion</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results_1</span><span class="o">.</span><span class="n">aic</span><span class="p">)</span>  <span class="c1"># 870.750388763</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results_2</span><span class="o">.</span><span class="n">aic</span><span class="p">)</span>  <span class="c1"># 844.623363003</span>
+</pre></div>
+</div>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>The Akaike information criterion, as well as several other information
+criteria, is available for all models that extend the
+<code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code> class. See the tables in
+<a class="reference internal" href="10-appendix-B.html#appendix-b"><span class="std std-ref">Appendix B: Inherited attributes and methods</span></a> for all available attributes and methods.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="unobserved-components">
+<h2>Unobserved components<a class="headerlink" href="#unobserved-components" title="Permalink to this headline">¶</a></h2>
+<p>Unobserved components models, also known as structural time series models,
+decompose a univariate time series into trend, seasonal, cyclical, and
+irregular components. They can be written as:</p>
+<div class="math">
+\[y_t = \mu_t + \gamma_t + c_t + \varepsilon_t\]</div>
+<p>where <span class="math">\(y_t\)</span> refers to the observation vector at time <span class="math">\(t\)</span>,
+<span class="math">\(\mu_t\)</span> refers to the trend component, <span class="math">\(\gamma_t\)</span> refers to the
+seasonal component, <span class="math">\(c_t\)</span> refers to the cycle, and
+<span class="math">\(\varepsilon_t\)</span> is the irregular. The modeling details of these
+components can be found in the package documentation. These models are also
+described in depth in Chapter 3 of <a class="reference internal" href="9-references.html#durbin-time-2012" id="id4">[10]</a>. The class
+corresponding to these models is <code class="docutils literal"><span class="pre">sm.tsa.UnobservedComponents</span></code>.</p>
+<p>As an example, consider extending the model previously applied to the Nile
+river data to include a stochastic cycle, as suggested in
+<a class="reference internal" href="9-references.html#mendelssohn-stamp-2011" id="id5">[23]</a>. This is straightforward with the built-in
+model; the below example fits the model and plots the unobserved components,
+in this case a level and a cycle, in <a class="reference internal" href="#figure-6-uc-nile"><span class="std std-numref">Fig. 17</span></a>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">tsa</span><span class="o">.</span><span class="n">UnobservedComponents</span><span class="p">(</span><span class="n">nile</span><span class="p">,</span> <span class="s1">&#39;llevel&#39;</span><span class="p">,</span> <span class="n">cycle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stochastic_cycle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">plot_components</span><span class="p">(</span><span class="n">observed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="figure" id="id11">
+<span id="figure-6-uc-nile"></span><img alt="../_images/fig_6-uc-nile.png" src="../_images/fig_6-uc-nile.png" />
+<p class="caption"><span class="caption-number">Fig. 17 </span><span class="caption-text">Estimates of the unobserved level and cyclical components of Nile river
+volume.</span></p>
+</div>
+</div>
+<div class="section" id="var">
+<h2>VAR<a class="headerlink" href="#var" title="Permalink to this headline">¶</a></h2>
+<p>Vector autoregressions are important tools for reduced form time series
+analysis of multiple variables. Their form looks similar to an AR(p) model
+except that the variables are vectors and the coefficients are matrices.</p>
+<div class="math">
+\[y_t = \Phi_1 y_{t-1} + \dots + \Phi_p y_{t-p} + \varepsilon_t\]</div>
+<p>These models can be estimated using the <code class="docutils literal"><span class="pre">sm.tsa.VARMAX</span></code> class, which also
+allows estimation of vector moving average models and optionally models with
+exogenous regressors. <a class="footnote-reference" href="#id8" id="id6">[2]</a> The following code estimates a vector autoregression
+as a state space model (the starting parameters are the OLS estimates) and
+generates orthogonalized impulse response functions for shocks to each of the
+endogenous variables; these responses are plotted in
+<a class="reference internal" href="#figure-6-var-irf"><span class="std std-numref">Fig. 18</span></a>. <a class="footnote-reference" href="#id9" id="id7">[3]</a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">tsa</span><span class="o">.</span><span class="n">VARMAX</span><span class="p">(</span><span class="n">rbc_data</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+
+<span class="c1"># Generate impulse response functions; the `impluse` argument is used to</span>
+<span class="c1"># specify which shock is pulsed.</span>
+<span class="n">output_irfs</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">impulse_responses</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="n">impulse</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">orthogonalized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+<span class="n">labor_irfs</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">impulse_responses</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="n">impulse</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">orthogonalized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+<span class="n">consumption_irfs</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">impulse_responses</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="n">impulse</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">orthogonalized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+</pre></div>
+</div>
+<div class="figure" id="id12">
+<span id="figure-6-var-irf"></span><img alt="../_images/fig_6-var-irf.png" src="../_images/fig_6-var-irf.png" />
+<p class="caption"><span class="caption-number">Fig. 18 </span><span class="caption-text">Impulse response functions derived from a vector autoregression.</span></p>
+</div>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[2]</a></td><td>Estimation of VARMA(p,q) models is practically possible, although it is
+not recommended because no measures are in place to ensure
+identification (for example, the use of Kronecker indices is not yet
+available).</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[3]</a></td><td>Note that the orthogonalization is by Cholesky decomposition, which
+implicitly enforces a a causal ordering to the variables. The order is
+as defined in the provided dataset. Here <code class="docutils literal"><span class="pre">rbc_data</span></code> orders the
+variables as output, labor, consumption.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="dynamic-factors">
+<h2>Dynamic factors<a class="headerlink" href="#dynamic-factors" title="Permalink to this headline">¶</a></h2>
+<p>Dynamic factor models are another set of important reduced form multivariate
+models. They can be used to extract a common component from multifarious
+data. The general form of the model available here is the so-called static form
+of the dynamic factor model and can be written</p>
+<div class="math">
+\[\begin{split}y_t &amp; = \Lambda f_t + B x_t + u_t \\
+f_t &amp; = A_1 f_{t-1} + \dots + A_p f_{t-p} + \eta_t \\
+u_t &amp; = C_1 u_{t-1} + \dots + C_1 f_{t-q} + \varepsilon_t\end{split}\]</div>
+<p>where <span class="math">\(y_t\)</span> is the endogenous data, <span class="math">\(f_t\)</span> are the unobserved
+factors which follow a vector autoregression, and <span class="math">\(x_t\)</span> are optional
+exogenous regressors. <span class="math">\(\eta_t\)</span> and <span class="math">\(\varepsilon_t\)</span> are white noise
+error terms, and <span class="math">\(u_t\)</span> allows the possibility of autoregressive (or
+vector autoregressive) errors. In order to identify the factors,
+<span class="math">\(Var(\eta_t) \equiv I\)</span>.</p>
+<p>The following code extracts a single factor that
+follows an AR(2) process. The error term is not assumed to be autoregressive,
+so in this case <span class="math">\(u_t = \varepsilon_t\)</span>. By default the model assumes the
+elements of <span class="math">\(\varepsilon_t\)</span> are not cross-sectionally correlated (this
+assumption can be relaxed if desired). <a class="reference internal" href="#figure-6-dfm-irf"><span class="std std-numref">Fig. 19</span></a> plots the
+responses of the endogenous variables to an impulse in the unobserved factor.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">tsa</span><span class="o">.</span><span class="n">DynamicFactor</span><span class="p">(</span><span class="n">rbc_data</span><span class="p">,</span> <span class="n">k_factors</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">factor_order</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">coefficients_of_determination</span><span class="p">)</span>  <span class="c1"># [ 0.957   0.545   0.603 ]</span>
+
+<span class="c1"># Because the estimated factor turned out to be inversely related to the</span>
+<span class="c1"># three variables, we want to consider the negative of the impulse</span>
+<span class="n">dfm_irfs</span> <span class="o">=</span> <span class="o">-</span><span class="n">results</span><span class="o">.</span><span class="n">impulse_responses</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="n">impulse</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">orthogonalized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+</pre></div>
+</div>
+<div class="figure" id="id13">
+<span id="figure-6-dfm-irf"></span><img alt="../_images/fig_6-dfm-irf.png" src="../_images/fig_6-dfm-irf.png" />
+<p class="caption"><span class="caption-number">Fig. 19 </span><span class="caption-text">Impulse response functions derived from a dynamic factor model.</span></p>
+</div>
+<p>It is often difficult to directly interpret either the filtered estimates of
+the unobserved factors or the estimated coefficients of the <span class="math">\(\Lambda\)</span>
+matrix (called the matrix of factor loadings) due to identification issues
+related to the factors. For example, notice that
+<span class="math">\(\Lambda f_t = (-\Lambda) (-f_t)\)</span> so that reversing the signs of the
+factors and loadings results in an identical model. It is often
+informative instead to examine the extent to which each unobserved factor
+explains each endogenous variable (see for example
+<a class="reference internal" href="9-references.html#jungbacker-likelihood-based-2014" id="id10">[14]</a>). This can be explored using the
+<span class="math">\(R^2\)</span> value from the regression of each endogenous variable on each
+estimated factor and a constant. These values are available in the results
+attribute <code class="docutils literal"><span class="pre">coefficients_of_determination</span></code>. For the model estimated above, it
+is clear that the estimated factor largely tracks output.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="7-conclusion.html" title="Conclusion"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="5-posterior_simulation.html" title="Posterior Simulation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Chad Fulton.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.4.4.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

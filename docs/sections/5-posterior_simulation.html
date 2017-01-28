@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Posterior Simulation &mdash; State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Out-of-the-box models" href="6-out-of-the-box_models.html" />
+    <link rel="prev" title="Maximum Likelihood Estimation" href="4-maximum_likelihood_estimation.html" /><!--<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>-->
+<link href="../_static/google-fonts.css" rel="stylesheet">
+<link href="../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="6-out-of-the-box_models.html" title="Out-of-the-box models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="4-maximum_likelihood_estimation.html" title="Maximum Likelihood Estimation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Posterior Simulation</a><ul>
+<li><a class="reference internal" href="#markov-chain-monte-carlo-algorithms">Markov chain Monte Carlo algorithms</a></li>
+<li><a class="reference internal" href="#implementing-metropolis-hastings-the-local-level-model">Implementing Metropolis-Hastings: the local level model</a><ul>
+<li><a class="reference internal" href="#direct-approach">Direct approach</a></li>
+<li><a class="reference internal" href="#integration-with-pymc">Integration with PyMC</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementing-gibbs-sampling-the-arma-1-1-model">Implementing Gibbs sampling: the ARMA(1,1) model</a></li>
+<li><a class="reference internal" href="#implementing-gibbs-sampling-real-business-cycle-model">Implementing Gibbs sampling: real business cycle model</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="4-maximum_likelihood_estimation.html"
+                        title="previous chapter">Maximum Likelihood Estimation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="6-out-of-the-box_models.html"
+                        title="next chapter">Out-of-the-box models</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/sections/5-posterior_simulation.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="posterior-simulation">
+<span id="id1"></span><h1>Posterior Simulation<a class="headerlink" href="#posterior-simulation" title="Permalink to this headline">¶</a></h1>
+<p>State space models are also amenable to parameter estimation by Bayesian
+methods. We consider posterior simulation by Markov chain Monte Carlo (MCMC)
+methods, and in particular using the Metropolis-Hastings and Gibbs sampling
+algorithms. This section describes how to use the above models in Bayesian
+estimation, but fortunately no further modifications need be made; classes
+defined as in the maximum likelihood section (i.e. classes that extend from
+<code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code>) can be used for either maximum
+likelihood estimation or Bayesian estimation. Thus the example code here is
+only tasked with <em>applying</em> the previously defined state space models.</p>
+<p>A full discussion of Bayesian techniques is beyond the scope of this paper, but
+interested readers can consult <a class="reference internal" href="9-references.html#koop-bayesian-2003" id="id2">[18]</a> for a general
+introduction to Bayesian econometrics, <a class="reference internal" href="9-references.html#west-bayesian-1999" id="id3">[34]</a> for a
+comprehensive Bayesian approach to state space models, and
+<a class="reference internal" href="9-references.html#kim-state-space-1999" id="id4">[16]</a> for a excellent practical text on parameter
+estimation in state space models. The following introduction to Bayesian
+methods is drawn from these references.</p>
+<p>The Bayesian approach to parameter estimation begins by considering parameters
+as random variables. Bayes&#8217; theorem is applied to derive a distribution for the
+parameters conditional on the observed data. This &#8220;posterior&#8221; distribution is
+proportional to the likelihood function multiplied by a &#8220;prior&#8221; distribution
+for the parameters. The prior summarizes all information the researcher has on
+the parameter values prior to observing the data. Denoting the prior as
+<span class="math">\(\pi(\psi)\)</span>, the likelihood function as
+<span class="math">\(\mathcal{L}(Y_n \mid \psi)\)</span>, and the posterior as
+<span class="math">\(\pi(\psi \mid Y_n)\)</span>, we have</p>
+<div class="math">
+\[\pi(\psi \mid Y_n) \propto \mathcal{L}(Y_n \mid \psi) \pi(\psi)\]</div>
+<p>The posterior distribution is the quantity of interest; the difficulty of
+working with it depends on the prior specified by the researcher and the
+likelihood function entailed by the selected model. In specific cases (for
+example the special case of &#8220;conjugate priors&#8221;) the analytic form of the
+posterior distribution can be found and used for analysis directly. More often
+the posterior is not available analytically so other methods must be used to
+explore its properties.</p>
+<p>Posterior simulation is a method available when a procedure exists to <em>sample</em>
+from the posterior distribution even though the analytic form of the
+distribution may not be known. Posterior simulation considers drawing samples
+<span class="math">\(\psi_s, s=1 \dots S\)</span>. Under fairly weak conditions a law of large
+numbers can be applied so that, given the <span class="math">\(S\)</span> samples, sample averages
+can be used to approximate population quantities</p>
+<div class="math">
+\[\frac{1}{S} \sum_{s=1}^S g(\psi_s) \to \int g(\psi) \pi(\psi \mid Y_n) d \psi = E_{\pi(\cdot \mid Y_n)} \left [ g(\psi) \right ]\]</div>
+<p>For example, the posterior mean is often of interest and corresponds to
+<span class="math">\(g(\psi) = \psi\)</span>. Histograms can be used to examine the shapes of the
+marginal distributions of individual parameters.</p>
+<p>It may seem that sampling from an unknown distribution is impossible, but MCMC
+methods allow the <em>eventual</em> sampling from an unknown distribution by applying
+an algorithm designed to ensure that the unknown distribution is an invariant
+distribution of a Markov chain. The Markov chain is initialized with an
+arbitrary value, and then a transition density, denoted
+<span class="math">\(f(\psi_s \mid \psi_{s-1})\)</span>, is applied to draw subsequent values
+conditional only on the previous value. The appropriate selection of the
+transition densities can usually ensure that there exists some value
+<span class="math">\(\hat s\)</span> such that every subsequently drawn sample
+<span class="math">\(\psi_s, ~ s &gt; \hat s\)</span> is marginally distributed according to the unknown
+distribution of interest. <a class="footnote-reference" href="#id7" id="id5">[1]</a>  The two methods discussed below differ
+in the specification of the transition density.</p>
+<div class="section" id="markov-chain-monte-carlo-algorithms">
+<h2>Markov chain Monte Carlo algorithms<a class="headerlink" href="#markov-chain-monte-carlo-algorithms" title="Permalink to this headline">¶</a></h2>
+<p><strong>Metropolis-Hastings algorithm</strong> <a class="footnote-reference" href="#id8" id="id6">[2]</a></p>
+<p>The Metropolis-Hastings algorithm is a very general strategy for constructing
+a Markov chain with the desired invariant distribution. The transition density
+is specified in the following way:</p>
+<ol class="arabic">
+<li><p class="first">Given the current value of the chain, <span class="math">\(\psi_{s-1}\)</span>, a proposal value,
+<span class="math">\(\psi^*\)</span>, is selected according to a proposal
+<span class="math">\(q(\psi ; \psi_{s-1})\)</span> which is a fixed density function for a given
+value <span class="math">\(\psi_{s-1}\)</span>.</p>
+</li>
+<li><p class="first">With probability <span class="math">\(\alpha(\psi_{s-1}, \psi^*)\)</span> (defined below) the
+proposed value is accepted so that the next value of the chain is set to
+<span class="math">\(\psi_s = \psi^*\)</span>; if it is not accepted, the chain remains in place
+<span class="math">\(\psi_s = \psi_{s-1}\)</span>.</p>
+<div class="math">
+\[\alpha(\psi_{s-1}, \psi^*) = \min \left \{ \frac{\pi(\psi^* \mid Y_n) q(\psi^* ; \psi_{s-1})}{\pi(\psi_{s-1} \mid Y_n) q(\psi_{s-1} ; \psi^*)}, 1 \right \}\]</div>
+</li>
+</ol>
+<p>Practically speaking, the important component of this algorithm is that only
+the ratio of posterior quantities is required. Recalling from above that the
+posterior is proportional to the likelihood and the prior we can rewrite the
+probability of acceptance as</p>
+<div class="math">
+\[\alpha(\psi_{s-1}, \psi^*) = \min \left \{ \frac{\mathcal{L}(Y_n \mid \psi^*) \pi(\psi^*) q(\psi^* ; \psi_{s-1})}{\mathcal{L}(Y_n \mid \psi_{s-1}) \pi(\psi_{s-1}) q(\psi_{s-1} ; \psi^*)}, 1 \right \}\]</div>
+<p>Given a particular specification for the prior and proposal distributions,
+<em>this ratio can be computed</em>, where the likelihood function is evaluated as a
+byproduct of the Kalman filter iterations. In the special case that the
+proposal distribution satistifes
+<span class="math">\(q(\psi_{s-1} ; \psi^*) = q(\psi^* ; \psi_{s-1})\)</span> (as will be the case in
+the examples below), we can again rewrite the probabilty of acceptance as</p>
+<div class="math" id="equation-accept_prob">
+<span class="eqno">(1)</span>\[\alpha(\psi_{s-1}, \psi^*) = \min \left \{ \frac{\mathcal{L}(Y_n \mid \psi^*) \pi(\psi^*)}{\mathcal{L}(Y_n \mid \psi_{s-1}) \pi(\psi_{s-1})}, 1 \right \}\]</div>
+<p>One convenient choice of proposal distribution that allows this is the
+so-called random walk proposal with Gaussian increment, defined such that</p>
+<div class="math" id="equation-rw_proposal">
+<span class="eqno">(2)</span>\[\psi^* = \psi_{s-1} + \epsilon_s, \qquad \epsilon_s \sim N(0, \Sigma_\epsilon)\]</div>
+<p>Notice that to use this proposal distribution, we must set the variance
+<span class="math">\(\Sigma_\epsilon\)</span>. This is often calibrated to achieve some target
+acceptance rate (ratio of accepted to rejected draws); see the references above
+for more details.</p>
+<p><strong>Gibbs sampling algorithm</strong></p>
+<p>Suppose that we can block the parameter vector into <span class="math">\(K\)</span> subvectors, so
+that <span class="math">\(\psi = \{\psi^{(1)}, \psi^{(2)}, \dots, \psi^{(K)}\}\)</span>, and further
+suppose that all <em>conditional</em> posterior distributions of the form
+<span class="math">\(\pi(\psi^{(k)} \mid \psi^{(-k)}, Y_n), ~ k=1, \dots, K\)</span> can be sampled
+from. Then the transition density moving from <span class="math">\(\psi_{s-1}\)</span> to
+<span class="math">\(\psi_s\)</span> can be defined as follows:</p>
+<ol class="arabic simple">
+<li>Given the current value of the chain <span class="math">\(\psi_{s-1}\)</span>, sample
+<span class="math">\(\psi_{s}^{(1)}\)</span> according to the density
+<span class="math">\(\pi(\psi^{(1)} \mid \psi_{s-1}^{(-1)}, Y_n)\)</span>.</li>
+<li>Sample <span class="math">\(\psi_{s}^{(2)}\)</span> according to the density
+<span class="math">\(\pi(\psi^{(1)} \mid \psi_{s-1}^{(-1,2)}, \psi_{s}^{(1)}, Y_n)\)</span></li>
+<li>[repeat for <span class="math">\(k=3, \dots, K\)</span>]</li>
+<li>Then <span class="math">\(\psi_s = \{ \psi_s^{(1)}, \psi_s^{(2)}, \dots, \psi_s^{(K)} \}\)</span></li>
+</ol>
+<p>In the case of state space models, we can augment the parameter vector to
+include the unobserved states. Notice then that the conditional posterior
+distribution for the states is exactly the distribution from which the
+simulation smoother produces simulated states; i.e. <span class="math">\(\tilde \alpha\)</span> is
+drawn according to <span class="math">\(\pi(\alpha \mid \psi, Y_n)\)</span>.</p>
+<p>The conditional distributions for the parameter vector must be identified on a
+case-by-case basis. However, notice that the conditional posterior distribution
+conditions on the unobserved states, so that in many cases the conditional
+distributions follow from well known econometric problems. For example, if the
+observation covariance matrix is diagonal, the rows of the observation
+equation can be viewed as equation-by-equation OLS.</p>
+<p><strong>Metropolis-within-Gibbs sampling algorithm</strong></p>
+<p>In the case that the parameter vector can be blocked as above but some of the
+conditional posterior distributions cannot be directly sampled from, a hybrid
+MCMC approach can be taken. The Gibbs sampling algorithm is used as defined
+above, except that for any block <span class="math">\(k\)</span> such that the conditional posterior
+cannot be sampled from, the Metropolis-Hastings algorithm is applied for that
+block (i.e. a proposal is generated and accepted with the probability defined
+above).</p>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[1]</a></td><td>Of course the value <span class="math">\(\hat s\)</span> is unknown and can in some cases be
+quite large, although statistical tests do exist that can explore this
+issue.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[2]</a></td><td>This discussion is somewhat loose; see <a class="reference internal" href="9-references.html#tierney-markov-1994" id="id9">[32]</a> and
+<a class="reference internal" href="9-references.html#chib-understanding-1995" id="id10">[6]</a> for careful treatments.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="implementing-metropolis-hastings-the-local-level-model">
+<h2>Implementing Metropolis-Hastings: the local level model<a class="headerlink" href="#implementing-metropolis-hastings-the-local-level-model" title="Permalink to this headline">¶</a></h2>
+<p>In this section we describe implementing the Metropolis-Hastings algorithm to
+estimate unknown parameters of a state space model. First, it is illuminating
+to consider a direct approach where all code is explicit. Second, we consider
+using the another Python library (PyMC) to streamline the estimation process.</p>
+<p>The local level, as written above, has two variance parameters
+<span class="math">\(\sigma_\varepsilon^2\)</span> and <span class="math">\(\sigma_\eta^2\)</span>. In practice we will
+sample the standard deviations <span class="math">\(\sigma_\varepsilon\)</span> and
+<span class="math">\(\sigma_\eta\)</span>. Recalling the Metropolis-Hastings algorithm, in order to
+proceed we will need to evaluate the likelihood and the prior and specify a
+proposal distribution. The likelihood will be evaluated using the Kalman filter
+via the <code class="docutils literal"><span class="pre">loglike</span></code> method introduced earlier. The parameters are chosen to
+have independent inverse-gamma priors, with the shape and scale parameters set
+as in <a class="reference internal" href="#table-llevel-priors"><span class="std std-numref">Table 5</span></a>. <a class="footnote-reference" href="#id12" id="id11">[3]</a> We will use the random walk proposal,
+which simply requires drawing a value from a multivariate normal distribution
+each iteration. We set the variance of the random walk innovation to be the
+identity matrix times ten. The prior densities can be evaluated and variates
+drawn from the multivariate normal using the Python package SciPy.</p>
+<table border="1" class="docutils" id="id23">
+<span id="table-llevel-priors"></span><caption><span class="caption-number">Table 5 </span><span class="caption-text">Priors for the local level model applied to Nile data.</span><a class="headerlink" href="#id23" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="29%" />
+<col width="22%" />
+<col width="8%" />
+<col width="8%" />
+<col width="14%" />
+<col width="18%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Prior distribution</th>
+<th class="head">Shape</th>
+<th class="head">Scale</th>
+<th class="head">Prior mean</th>
+<th class="head">Prior variance</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(\sigma_\varepsilon\)</span></td>
+<td>Inverse-gamma</td>
+<td>3</td>
+<td>300</td>
+<td>150</td>
+<td>22,500</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\sigma_\eta\)</span></td>
+<td>Inverse-gamma</td>
+<td>3</td>
+<td>120</td>
+<td>60</td>
+<td>3,600</td>
+</tr>
+</tbody>
+</table>
+<p>For each iteration, the acceptance probability can be calculated from the above
+elements, and the decision to accept or reject can be made by comparing the
+acceptance probability to a random variate from a standard uniform
+distribution.</p>
+<table class="docutils footnote" frame="void" id="id12" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id11">[3]</a></td><td><p class="first">To be clear, since there are multiple ways to parameterize the
+inverse-gamma distribution, with <span class="math">\(x \sim \text{IG}(\alpha, \beta)\)</span>
+the density we consider is</p>
+<div class="last math">
+\[p(x) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{-\alpha - 1} e^{-\frac{\beta}{x}}\]</div>
+</td></tr>
+</tbody>
+</table>
+<div class="section" id="direct-approach">
+<h3>Direct approach<a class="headerlink" href="#direct-approach" title="Permalink to this headline">¶</a></h3>
+<p>Given the existence of the local level class (<code class="docutils literal"><span class="pre">MLELocalLevel</span></code>) for
+calculating the loglikelihood, the code for performing an MCMC exercise is
+relatively simple. First, we initialize the priors and the proposal
+distribution</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">multivariate_normal</span><span class="p">,</span> <span class="n">invgamma</span><span class="p">,</span> <span class="n">uniform</span>
+
+<span class="c1"># Create the model for likelihood evaluation</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MLELocalLevel</span><span class="p">(</span><span class="n">nile</span><span class="p">)</span>
+
+<span class="c1"># Specify priors</span>
+<span class="n">prior_obs</span> <span class="o">=</span> <span class="n">invgamma</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="n">prior_level</span> <span class="o">=</span> <span class="n">invgamma</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+
+<span class="c1"># Specify the random walk proposal</span>
+<span class="n">rw_proposal</span> <span class="o">=</span> <span class="n">multivariate_normal</span><span class="p">(</span><span class="n">cov</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, we perform 10,000 Metropolis-Hastings iterations as follows. The
+resultant histograms and traces in terms of the variances, as well as a plot of
+the acceptance ratio over the iterations, are given in
+<a class="reference internal" href="#figure-5-llevel-posteriors"><span class="std std-numref">Fig. 11</span></a>. <a class="footnote-reference" href="#id14" id="id13">[4]</a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Create storage arrays for the traces</span>
+<span class="n">n_iterations</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">trace_accepts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_iterations</span><span class="p">)</span>
+<span class="n">trace</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">120</span><span class="p">,</span> <span class="mi">30</span><span class="p">]</span>  <span class="c1"># Initial values</span>
+
+<span class="c1"># Iterations</span>
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">proposed</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">rw_proposal</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+
+    <span class="n">acceptance_probability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">loglike</span><span class="p">(</span><span class="n">proposed</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">model</span><span class="o">.</span><span class="n">loglike</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
+        <span class="n">prior_obs</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">proposed</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">prior_level</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">proposed</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span>
+        <span class="n">prior_obs</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">prior_level</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+
+    <span class="k">if</span> <span class="n">acceptance_probability</span> <span class="o">&gt;</span> <span class="n">uniform</span><span class="o">.</span><span class="n">rvs</span><span class="p">():</span>
+        <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">proposed</span>
+        <span class="n">trace_accepts</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="figure" id="id24">
+<span id="figure-5-llevel-posteriors"></span><img alt="../_images/fig_5-llevel-posteriors.png" src="../_images/fig_5-llevel-posteriors.png" />
+<p class="caption"><span class="caption-number">Fig. 11 </span><span class="caption-text">Output from Metropolis-Hastings posterior simulation on Nile data.</span></p>
+</div>
+<table class="docutils footnote" frame="void" id="id14" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id13">[4]</a></td><td>The output figures are ultimately based on 900 simulated values for each
+parameter. Of the 10,000 simulations performed, the first 1,000 were
+eliminated as the burn-in period and the remaining 9,000 were thinned
+by only taking each 10th sample, to reduce the effects of autocorrelated
+draws.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="integration-with-pymc">
+<h3>Integration with PyMC<a class="headerlink" href="#integration-with-pymc" title="Permalink to this headline">¶</a></h3>
+<p>Parameters can also be simply estimated by taking advantage of the PyMC library
+(<a class="reference internal" href="9-references.html#patil-pymc-2010" id="id15">[26]</a>). A full discussion of the features and
+use of this library is beyond the scope of this paper and instead we only
+introduce the features we need for estimation of this model. A similar approach
+would handle most state space models, and the PyMC documentation can be
+consulted for more advanced usage, including sophisticated sampling techniques
+such as slice sampling and No-U-Turn sampling.</p>
+<p>As above, we need to create objects representing the selected priors and an
+object representing the likelihood function. The former are referred to by
+PyMC as &#8220;stochastic&#8221; elements, and the latter as a &#8220;data&#8221; element (which is
+a stochastic element that has already been &#8220;observed&#8221; and so is not sampled
+from). The priors and likelihood function using the <code class="docutils literal"><span class="pre">MLELocalLevel</span></code> class
+defined above can be implemented with PyMC in the following way</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pymc</span> <span class="k">as</span> <span class="nn">mc</span>
+
+<span class="c1"># Priors as &quot;stochastic&quot; elements</span>
+<span class="n">prior_obs</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">InverseGamma</span><span class="p">(</span><span class="s1">&#39;obs&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+<span class="n">prior_level</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">InverseGamma</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+
+<span class="c1"># Create the model for likelihood evaluation</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MLELocalLevel</span><span class="p">(</span><span class="n">nile</span><span class="p">)</span>
+
+<span class="c1"># Create the &quot;data&quot; component (stochastic and observed)</span>
+<span class="nd">@mc</span><span class="o">.</span><span class="n">stochastic</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">sm</span><span class="o">.</span><span class="n">tsa</span><span class="o">.</span><span class="n">statespace</span><span class="o">.</span><span class="n">MLEModel</span><span class="p">,</span> <span class="n">observed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">loglikelihood</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">obs_std</span><span class="o">=</span><span class="n">prior_obs</span><span class="p">,</span> <span class="n">level_std</span><span class="o">=</span><span class="n">prior_level</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">loglike</span><span class="p">([</span><span class="n">obs_std</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">level_std</span><span class="o">**</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>We do not need to explicitly specify the proposal; PyMC uses an adaptive
+proposal by default. Instead, we simply need to create a &#8220;model&#8221;, which unifies
+the priors and likelihood, and a &#8220;sampler&#8221;. The sampler is an object used to
+perform the simulations and return the trace objects. The resultant histograms
+and traces in terms of the variances from 10,000 iterations are given in
+<a class="reference internal" href="#figure-5-pymc-posteriors"><span class="std std-numref">Fig. 12</span></a>. <a class="footnote-reference" href="#id17" id="id16">[5]</a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Create the PyMC model</span>
+<span class="n">pymc_model</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">Model</span><span class="p">((</span><span class="n">prior_obs</span><span class="p">,</span> <span class="n">prior_level</span><span class="p">,</span> <span class="n">loglikelihood</span><span class="p">))</span>
+
+<span class="c1"># Create a PyMC sample and perform sampling</span>
+<span class="n">sampler</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">MCMC</span><span class="p">(</span><span class="n">pymc_model</span><span class="p">)</span>
+<span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">iter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">burn</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">thin</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="figure" id="id25">
+<span id="figure-5-pymc-posteriors"></span><img alt="../_images/fig_5-pymc-posteriors.png" src="../_images/fig_5-pymc-posteriors.png" />
+<p class="caption"><span class="caption-number">Fig. 12 </span><span class="caption-text">Output from Metropolis-Hastings posterior simulation on Nile data, using
+the PyMC library.</span></p>
+</div>
+<table class="docutils footnote" frame="void" id="id17" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id16">[5]</a></td><td>The acceptance ratio is not provided by PyMC when the adaptive proposal
+is used.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="implementing-gibbs-sampling-the-arma-1-1-model">
+<h2>Implementing Gibbs sampling: the ARMA(1,1) model<a class="headerlink" href="#implementing-gibbs-sampling-the-arma-1-1-model" title="Permalink to this headline">¶</a></h2>
+<p>In this section we describe implementing the Gibbs sampling algorithm to
+estimation unknown parameters of a state space model. Only the direct approach
+is presented here (as of now, PyMC only has preliminary support for Gibbs
+sampling). The Metropolis-within-Gibbs approach is used to demonstrate both how
+to apply Gibbs sampling and how to apply a hybrid approach.</p>
+<p>Recalling the Gibbs sampling algorithm, in order to proceed we need to
+block the parameters and the unobserved states such the the conditional
+distributions can be found. We will choose four blocks, so that the unobserved
+states are in the first block, the autoregressive coefficient is in the second
+block, the variance is in the third block, and the moving average coefficient
+is in the last block. In notation, this means that
+<span class="math">\(\psi = \{ \psi^{(1)}, \psi^{(2)}, \psi^{(3)}, \psi^{(4)} \} = \{ \alpha, \phi, \sigma^2, \theta \}\)</span>.
+We will apply Gibbs steps for the first, second, and third blocks and a
+Metropolis step for the fourth block.</p>
+<p>We select priors for the parameters so that the conditional posterior
+distributions that we require can be constructed. For the autogressive
+coefficients we select a multivariate normal distribution - conditional on the
+variance - with an identity covariance matrix and restricted to the space such
+that the corresponding lag polynomial is invertible. To be precise, the prior
+is <span class="math">\(\phi \mid \sigma^2 \sim N(0, I)\)</span> such that <span class="math">\(\phi(L)\)</span> is
+invertible.</p>
+<p>For the variance, we select an inverse-gamma distribution - conditional on the
+autoregressive coefficients - with the shape and scale parameters both set to
+three. To be precise, the prior is
+<span class="math">\(\sigma^2 \mid \phi \sim IG(3, 3)\)</span>. These choices will be
+convenient due to their status as conjugate priors for the linear regression
+model; they will lead to known conditional posterior distributions.</p>
+<p>Finally, the prior for the moving-average coefficient is specified to be
+uniform over the interval <span class="math">\((-1, 1)\)</span>, so that
+<span class="math">\(\theta \sim \text{unif}(-1, 1)\)</span>. Notice that the prior density for all
+values in the range is equal, and so the acceptance probability is either zero,
+in the case that the proposed value is outside the range, or else simplifies to
+the ratio of the likelihoods because the prior values cancel out. We will use a
+random walk proposal with standard Gaussian increment.</p>
+<p>Now, conditional on the model parameters, a draw of <span class="math">\(\psi^{(1)}\)</span> can be
+taken by applying the simulation smoother as shown in previous sections.
+Next notice that, given the values of the states, the first row of the
+transition equation in <a href="#equation-arma11">(?)</a> is simply a linear regression:</p>
+<div class="math">
+\[\alpha_{1,t+1} = \phi \alpha_{1,t} + \varepsilon_{t+1}\]</div>
+<p>Stacking these equations across all <span class="math">\(t\)</span> into matrix form yields
+<span class="math">\(Z = X \phi + \varepsilon\)</span>. A standard result applying conjugate priors
+to the linear regression model (see for example <a class="reference internal" href="9-references.html#kim-state-space-1999" id="id18">[16]</a>)
+is that the conditional posterior distribution for the coefficients is Gaussian
+and the conditional posterior distribution for the variance is inverse-gamma.
+To be precise, given our choice of prior hyperparameters here we have</p>
+<div class="math">
+\[\begin{split}\phi &amp; \mid \sigma^2, \alpha, Y_n \sim N \Big( (\sigma^2 I + X' X)^{-1} X' Z, (I + \sigma^{-2} X' X)^{-1} \Big ) \\
+\sigma^2 &amp; \mid \phi, \alpha, Y_n \sim IG \Big (3 + n, 3 + (Z - X \phi)'(Z - X \phi) \Big )\end{split}\]</div>
+<p>Making draws from these conditional posteriors can be implemented in the
+following way</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">multivariate_normal</span><span class="p">,</span> <span class="n">invgamma</span>
+
+<span class="k">def</span> <span class="nf">draw_posterior_phi</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">):</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">sigma2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+    <span class="n">post_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Z</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+    <span class="n">post_var</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">*</span> <span class="n">sigma2</span>
+
+    <span class="k">return</span> <span class="n">multivariate_normal</span><span class="p">(</span><span class="n">post_mean</span><span class="p">,</span> <span class="n">post_var</span><span class="p">)</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">draw_posterior_sigma2</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">phi</span><span class="p">):</span>
+    <span class="n">resid</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">phi</span> <span class="o">*</span> <span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">post_shape</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">nobs</span>
+    <span class="n">post_scale</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">resid</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">invgamma</span><span class="p">(</span><span class="n">post_shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">post_scale</span><span class="p">)</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Implementing the hybrid method then consists of the following steps for each
+iteration, given the previous value <span class="math">\(\psi_{s-1}\)</span>.</p>
+<ol class="arabic simple">
+<li>Apply the simulation smoother to retrieve a draw of the unobserved states,
+yielding <span class="math">\(\tilde \alpha = \psi_s^{(1)}\)</span>.</li>
+<li>Draw a value for <span class="math">\(\phi = \psi_1^{(2)}\)</span>
+from its conditional posterior distribution, conditioning on the states
+drawn in step 1 and the parameters from the previous iteration.</li>
+<li>Draw a value for <span class="math">\(\sigma^2 = \psi_s^{(3)}\)</span> from its conditional
+posterior distribution, conditioning on the state states drawn in step 1 and
+the autoregression coefficients drawn in step 2.</li>
+<li>Propose a new value for <span class="math">\(\theta = \psi_s^{(4)}\)</span> using the random walk
+proposal,  and calculate the acceptance probability using the <code class="docutils literal"><span class="pre">loglike</span></code> function.</li>
+</ol>
+<p>The implementation code is below, and the resultant histograms and traces from
+10,000 iterations are given in <a class="reference internal" href="#figure-5-gibbs-posteriors"><span class="std std-numref">Fig. 13</span></a>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">norm</span><span class="p">,</span> <span class="n">uniform</span>
+<span class="kn">from</span> <span class="nn">statsmodels.tsa.statespace.tools</span> <span class="k">import</span> <span class="n">is_invertible</span>
+
+<span class="c1"># Create the model for likelihood evaluation and the simulation smoother</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ARMA11</span><span class="p">(</span><span class="n">inf</span><span class="p">)</span>
+<span class="n">sim_smoother</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">simulation_smoother</span><span class="p">()</span>
+
+<span class="c1"># Create the random walk and comparison random variables</span>
+<span class="n">rw_proposal</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="c1"># Create storage arrays for the traces</span>
+<span class="n">n_iterations</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">trace_accepts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_iterations</span><span class="p">)</span>
+<span class="n">trace</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]</span>  <span class="c1"># Initial values</span>
+
+<span class="c1"># Iterations</span>
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># 1. Gibbs step: draw the states using the simulation smoother</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">transformed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">sim_smoother</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="n">sim_smoother</span><span class="o">.</span><span class="n">simulated_state</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># 2. Gibbs step: draw the autoregressive parameters, and apply</span>
+    <span class="c1"># rejection sampling to ensure an invertible lag polynomial</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">draw_posterior_phi</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">is_invertible</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">phi</span><span class="p">]):</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">draw_posterior_phi</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span>
+
+    <span class="c1"># 3. Gibbs step: draw the variance parameter</span>
+    <span class="n">sigma2</span> <span class="o">=</span> <span class="n">draw_posterior_sigma2</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+    <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigma2</span>
+
+    <span class="c1"># 4. Metropolis-step for the moving-average parameter</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">proposal</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">+</span> <span class="n">rw_proposal</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">proposal</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">proposal</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">acceptance_probability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">loglike</span><span class="p">([</span><span class="n">phi</span><span class="p">,</span> <span class="n">proposal</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">])</span> <span class="o">-</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">loglike</span><span class="p">([</span><span class="n">phi</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="n">acceptance_probability</span> <span class="o">&gt;</span> <span class="n">uniform</span><span class="o">.</span><span class="n">rvs</span><span class="p">():</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">proposal</span>
+            <span class="n">trace_accepts</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">theta</span>
+
+</pre></div>
+</div>
+<div class="figure" id="id26">
+<span id="figure-5-gibbs-posteriors"></span><img alt="../_images/fig_5-gibbs-posteriors.png" src="../_images/fig_5-gibbs-posteriors.png" />
+<p class="caption"><span class="caption-number">Fig. 13 </span><span class="caption-text">Output from Metropolis-within-Gibbs posterior simulation on US CPI
+inflation data.</span></p>
+</div>
+</div>
+<div class="section" id="implementing-gibbs-sampling-real-business-cycle-model">
+<h2>Implementing Gibbs sampling: real business cycle model<a class="headerlink" href="#implementing-gibbs-sampling-real-business-cycle-model" title="Permalink to this headline">¶</a></h2>
+<p>Finally, we can apply the same techniques as above to perform
+Metropolis-within-Gibbs estimation of the real business cycle model parameters.
+It is often difficult to estimate all of the parameters of the RBC model, or
+other structural models, by maximum likelihood. Indeed, above we only
+estimated two of the six structural parameters. By choosing appropriately tight
+priors it is often feasible to estimate more parameters; in this example we
+estimate four of the six structural parameters: the discount rate, capital
+share, and the two technology shock parameters. Of the two remaining
+parameters, the disutility of labor only serves to pin down steady-state values
+and so the model presented above is independent of its value (since it
+considers data in in deviation-from-steady-state values), and the depreciation
+rate is best calibrated when the observation datasets do not speak to
+to depreciation (see, for example, the discussion in
+<a class="reference internal" href="9-references.html#smets-shocks-2007" id="id19">[30]</a>).</p>
+<p>For the Metropolis-within-Gibbs simulation, we consider 8 blocks. The first
+three blocks are sampled using Gibbs steps, and are very similar to the
+ARMA(1,1) example; the first block samples the unobserved states, and the
+second and third blocks sample the two technology shock parameters. Noticing
+that the second row of the transition equation is simply an autoregression,
+conditional on the states, we can use the same approach as before. Thus the
+priors on these parameters are the Gaussian and inverse-gamma conjugate priors
+and the unobserved states are sampled using the simulation smoother.</p>
+<p>The remaining blocks apply Metropolis steps to sample the remaining five
+parameters: the discount rate, capital share, and the three measurement
+variances. The priors on these parameters are as in <a class="reference internal" href="9-references.html#smets-shocks-2007" id="id20">[30]</a>.
+All priors are listed in <a class="reference internal" href="#table-rbc-priors"><span class="std std-numref">Table 6</span></a>, along with statistics
+describing the posterior draws.</p>
+<table border="1" class="docutils" id="id27">
+<span id="table-rbc-priors"></span><caption><span class="caption-number">Table 6 </span><span class="caption-text">Priors and posteriors for the real business cycle model.</span><a class="headerlink" href="#id27" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="32%" />
+<col width="14%" />
+<col width="6%" />
+<col width="10%" />
+<col width="8%" />
+<col width="8%" />
+<col width="10%" />
+<col width="11%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">&nbsp;</th>
+<th class="head" colspan="3">Prior distribution</th>
+<th class="head" colspan="4">Posterior distribution</th>
+</tr>
+<tr class="row-even"><th class="head">&nbsp;</th>
+<th class="head">Distribution</th>
+<th class="head">Mean</th>
+<th class="head">Std. Dev.</th>
+<th class="head">Mode</th>
+<th class="head">Mean</th>
+<th class="head">5 percent</th>
+<th class="head">95 percent</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-odd"><td>Discount rate <a class="footnote-reference" href="#id22" id="id21">[6]</a></td>
+<td>Gamma</td>
+<td>0.25</td>
+<td>0.1</td>
+<td>0.997</td>
+<td>0.997</td>
+<td>0.994</td>
+<td>0.998</td>
+</tr>
+<tr class="row-even"><td>Capital share</td>
+<td>Normal</td>
+<td>0.3</td>
+<td>0.01</td>
+<td>0.325</td>
+<td>0.325</td>
+<td>0.308</td>
+<td>0.341</td>
+</tr>
+<tr class="row-odd"><td>Technology shock persistence</td>
+<td>Normal</td>
+<td>0</td>
+<td>1</td>
+<td>0.672</td>
+<td>0.637</td>
+<td>-0.271</td>
+<td>0.940</td>
+</tr>
+<tr class="row-even"><td>Technology shock variance</td>
+<td>Inverse-gamma</td>
+<td>0.01</td>
+<td>1.414</td>
+<td>8.65e-5</td>
+<td>8.98e-5</td>
+<td>7.67e-5</td>
+<td>1.05e-4</td>
+</tr>
+<tr class="row-odd"><td>Output error standard deviation</td>
+<td>Inverse-gamma</td>
+<td>0.1</td>
+<td>2</td>
+<td>2.02e-5</td>
+<td>2.29e-5</td>
+<td>1.46e-5</td>
+<td>3.34e-05</td>
+</tr>
+<tr class="row-even"><td>Labor error standard deviation</td>
+<td>Inverse-gamma</td>
+<td>0.1</td>
+<td>2</td>
+<td>3.06e-5</td>
+<td>3.21e-5</td>
+<td>2.25e-5</td>
+<td>4.34e-05</td>
+</tr>
+<tr class="row-odd"><td>Consumption error standard deviation</td>
+<td>Inverse-gamma</td>
+<td>0.1</td>
+<td>2</td>
+<td>2.46e-5</td>
+<td>2.57e-5</td>
+<td>1.94e-5</td>
+<td>3.28e-05</td>
+</tr>
+</tbody>
+</table>
+<p>Again, the code is slightly too long to display inline, so it can be found in
+<a class="reference internal" href="10-appendix-C.html#appendix-c"><span class="std std-ref">Appendix C: Real business cycle model code</span></a>. We perform 100,000 draws and burn the first 10,000. Of the
+remaining 90,000 draws, each tenth draw is saved, so that the results below are
+ultimately based on 9,000 draws. Histograms of the four estimated structural
+parameters are presented in <a class="reference internal" href="#figure-5-rbc-posteriors"><span class="std std-numref">Fig. 14</span></a>.</p>
+<div class="figure" id="id28">
+<span id="figure-5-rbc-posteriors"></span><img alt="../_images/fig_5-rbc-posteriors.png" src="../_images/fig_5-rbc-posteriors.png" />
+<p class="caption"><span class="caption-number">Fig. 14 </span><span class="caption-text">Output from Metropolis-within-Gibbs posterior simulation of the real business cycle.</span></p>
+</div>
+<p>As before, we may be interested in the implied impulse response functions and
+the smoothed state values; here we calculate these by applying the Kalman
+filter and smoother to the model based on the median parameter values.
+<a class="reference internal" href="#figure-5-gibbs-irf"><span class="std std-numref">Fig. 15</span></a> displays the impulse responses and
+<a class="reference internal" href="#figure-5-gibbs-states"><span class="std std-numref">Fig. 16</span></a> displays the smoothed states and confidence
+intervals.</p>
+<div class="figure" id="id29">
+<span id="figure-5-gibbs-irf"></span><img alt="../_images/fig_5-gibbs-irf.png" src="../_images/fig_5-gibbs-irf.png" />
+<p class="caption"><span class="caption-number">Fig. 15 </span><span class="caption-text">Impulse response functions corresponding to Metropolis-within-Gibbs
+estimation of the real business cycle.</span></p>
+</div>
+<div class="figure" id="id30">
+<span id="figure-5-gibbs-states"></span><img alt="../_images/fig_5-gibbs-states.png" src="../_images/fig_5-gibbs-states.png" />
+<p class="caption"><span class="caption-number">Fig. 16 </span><span class="caption-text">Smoothed estimates of capital and the technology process from
+Metropolis-within-Gibbs estimation of the real business cycle.</span></p>
+</div>
+<table class="docutils footnote" frame="void" id="id22" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id21">[6]</a></td><td>If the discount rate is denoted <span class="math">\(\beta\)</span>, then the Gamma prior
+actually applies to the transformation <span class="math">\(100 (\beta^{-1} - 1)\)</span>.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="6-out-of-the-box_models.html" title="Out-of-the-box models"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="4-maximum_likelihood_estimation.html" title="Maximum Likelihood Estimation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Chad Fulton.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.4.4.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>State space models &mdash; State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Representation in Python" href="3-python_representation.html" />
+    <link rel="prev" title="Introduction" href="1-introduction.html" /><!--<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>-->
+<link href="../_static/google-fonts.css" rel="stylesheet">
+<link href="../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="3-python_representation.html" title="Representation in Python"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="1-introduction.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">State space models</a><ul>
+<li><a class="reference internal" href="#kalman-filter">Kalman Filter</a></li>
+<li><a class="reference internal" href="#initialization">Initialization</a></li>
+<li><a class="reference internal" href="#state-and-disturbance-smoothers">State and disturbance smoothers</a></li>
+<li><a class="reference internal" href="#simulation-smoother">Simulation smoother</a></li>
+<li><a class="reference internal" href="#practical-considerations">Practical considerations</a></li>
+<li><a class="reference internal" href="#additional-remarks">Additional remarks</a></li>
+<li><a class="reference internal" href="#example-models">Example models</a><ul>
+<li><a class="reference internal" href="#arma-1-1-model">ARMA(1, 1) model</a></li>
+<li><a class="reference internal" href="#local-level-model">Local level model</a></li>
+<li><a class="reference internal" href="#real-business-cycle-model">Real business cycle model</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#parameter-estimation">Parameter estimation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="1-introduction.html"
+                        title="previous chapter">Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="3-python_representation.html"
+                        title="next chapter">Representation in Python</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/sections/2-state_space_models.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="state-space-models">
+<span id="id1"></span><h1>State space models<a class="headerlink" href="#state-space-models" title="Permalink to this headline">¶</a></h1>
+<p>The state space representation of a possibly time-varying linear and Gaussian
+time series model can be written as</p>
+<div class="math" id="equation-sspace">
+<span class="eqno">(1)</span>\[\begin{split} y_t &amp;= d_t + Z_t \alpha_t + \varepsilon_t \qquad \qquad &amp; \varepsilon_t \sim N(0, H_t) \\
+ \alpha_{t+1} &amp; = c_t + T_t \alpha_t + R_t \eta_t  &amp; \eta_t \sim N(0, Q_t) \\\end{split}\]</div>
+<p>where <span class="math">\(y_t\)</span> is observed, so the first equation is called the observation
+or measurement equation, and <span class="math">\(\alpha_t\)</span> is unobserved. The second
+equation describes the transition of the unobserved state, and so is called the
+transition equation. The dimensions of each of the objects, as well as the name
+by which we will refer to them, are given in <a class="reference internal" href="#table-sspace"><span class="std std-numref">Table 1</span></a>. All
+notation in this paper will follow that in <a class="reference internal" href="9-references.html#commandeur-statistical-2011" id="id2">[7]</a>
+and <a class="reference internal" href="9-references.html#durbin-time-2012" id="id3">[10]</a>.</p>
+<table border="1" class="docutils" id="id30">
+<span id="table-sspace"></span><caption><span class="caption-number">Table 1 </span><span class="caption-text">Elements of state space representation</span><a class="headerlink" href="#id30" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="27%" />
+<col width="50%" />
+<col width="23%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Object</th>
+<th class="head">Description</th>
+<th class="head">Dimensions</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(y_t\)</span></td>
+<td>Observed data</td>
+<td><span class="math">\(p \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\alpha_t\)</span></td>
+<td>Unobserved state</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(d_t\)</span></td>
+<td>Observation intercept</td>
+<td><span class="math">\(p \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(Z_t\)</span></td>
+<td>Design matrix</td>
+<td><span class="math">\(p \times m\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\varepsilon_t\)</span></td>
+<td>Observation disturbance</td>
+<td><span class="math">\(p \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(H_t\)</span></td>
+<td>Observation disturbance covariance matrix</td>
+<td><span class="math">\(p \times p\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(c_t\)</span></td>
+<td>State intercept</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(T_t\)</span></td>
+<td>Transition matrix</td>
+<td><span class="math">\(m \times m\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(R_t\)</span></td>
+<td>Selection matrix</td>
+<td><span class="math">\(m \times r\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\eta_t\)</span></td>
+<td>State disturbance</td>
+<td><span class="math">\(r \times 1\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(Q_t\)</span></td>
+<td>State disturbance covariance matrix</td>
+<td><span class="math">\(r \times r\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The model is called time-invariant if only <span class="math">\(y_t\)</span> and <span class="math">\(\alpha_t\)</span>
+depend on time (so, for example, in a time-invariant model
+<span class="math">\(Z_t = Z_{t+1} \equiv Z\)</span>). In the case of a time-invariant model, we will
+drop the time subscripts from all state space representation matrices. Many
+important time series models are time-invariant, including ARIMA, VAR,
+unobserved components, and dynamic factor models.</p>
+<div class="section" id="kalman-filter">
+<h2>Kalman Filter<a class="headerlink" href="#kalman-filter" title="Permalink to this headline">¶</a></h2>
+<p>The Kalman filter, as applied to the state space model above, is a recursive
+formula running forwards through time (<span class="math">\(t = 1, 2, \dots, n\)</span>) providing
+optimal estimates of the unknown state. <a class="footnote-reference" href="#id6" id="id4">[1]</a> At time <span class="math">\(t\)</span>,
+the <em>predicted</em> quantities are the optimal estimates conditional on
+observations up to <span class="math">\(t-1\)</span>, and the <em>filtered</em> quantities are the optimal
+estimates conditional on observations up to time <span class="math">\(t\)</span>. This will be
+contrasted below with <em>smoothed</em> quantities, which are optimal estimates
+conditional on the full sample of observations.</p>
+<p>We now define some notation that will be useful below. Define the vector of
+all observations up to time <span class="math">\(s\)</span> as <span class="math">\(Y_s = \{ y_1, \dots, y_s \}\)</span>.
+Then the distribution of the predicted state is
+<span class="math">\(\alpha_t \mid Y_{t-1} \sim N(a_t, P_t)\)</span>, and the distribution of the
+filtered state is <span class="math">\(\alpha_t \mid Y_{t} \sim N(a_{t|t}, P_{t|t})\)</span>.</p>
+<p>As shown in, for example, <a class="reference internal" href="9-references.html#durbin-time-2012" id="id5">[10]</a>, the Kalman filter applied
+to the model <a href="#equation-sspace">(1)</a> above yields a recursive formulation. Given
+prior estimates <span class="math">\(a_t, P_t\)</span>, the filter produces optimal filtered and
+predicted estimates (<span class="math">\(a_{t|t}, P_{t|t}\)</span> and <span class="math">\(a_{t+1}, P_{t+1}\)</span>,
+respectively) as follows</p>
+<div class="math" id="equation-kfilter">
+<span class="eqno">(2)</span>\[\begin{split}v_t &amp; = y_t - Z_t a_t - d_t \qquad \qquad &amp; F_t = Z_t P_t Z_t' + H_t \\
+a_{t|t} &amp; = a_t + P_t Z_t' F_t^{-1} v_t &amp; P_{t|t} = P_t - P_t Z_t' F_t^{-1} Z_t P_t \\
+a_{t+1} &amp; = T_t a_{t|t} + c_t &amp; P_{t+1} = T_t P_{t|t} T_t' + R_t Q_t R_t'\end{split}\]</div>
+<p>An important byproduct of the Kalman filter iterations is evaluation of the
+loglikelihood of the observed data due to the so-called &#8220;prediction error
+decomposition&#8221;.</p>
+<p>The dimensions of each of the objects, as well as the name
+by which we will refer to them, are given in <a class="reference internal" href="#table-kfilter"><span class="std std-numref">Table 2</span></a>. Also
+included in the table is the Kalman gain, which is defined as
+<span class="math">\(K_t = T_t P_t Z_t' F_t^{-1}\)</span>.</p>
+<table border="1" class="docutils" id="id31">
+<span id="table-kfilter"></span><caption><span class="caption-number">Table 2 </span><span class="caption-text">Elements of Kalman filter recursions</span><a class="headerlink" href="#id31" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="28%" />
+<col width="46%" />
+<col width="26%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Object</th>
+<th class="head">Description</th>
+<th class="head">Dimensions</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(a_t\)</span></td>
+<td>Prior state mean</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(P_t\)</span></td>
+<td>Prior state covariance</td>
+<td><span class="math">\(m \times m\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(v_t\)</span></td>
+<td>Forecast error</td>
+<td><span class="math">\(p \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(F_t\)</span></td>
+<td>Forecast error covariance matrix</td>
+<td><span class="math">\(p \times p\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(a_{t|t}\)</span></td>
+<td>Filtered state mean</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(P_{t|t}\)</span></td>
+<td>Filtered state covariance matrix</td>
+<td><span class="math">\(m \times m\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(a_{t+1}\)</span></td>
+<td>Predicted state mean</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(P_{t+1}\)</span></td>
+<td>Predicted state covariance matrix</td>
+<td><span class="math">\(m \times m\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\log L(Y_n)\)</span></td>
+<td>Loglikelihood</td>
+<td>scalar</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(K_t\)</span></td>
+<td>Kalman gain</td>
+<td><span class="math">\(m \times p\)</span></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[1]</a></td><td>In this paper, &#8220;optimal&#8221; can be interpreted in the sense of minimizing
+the mean-squared error of estimation. In chapter 4,
+<a class="reference internal" href="9-references.html#durbin-time-2012" id="id7">[10]</a> show three other senses in which optimal can be
+defined for this same model.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="initialization">
+<h2>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h2>
+<p>Notice that since the Kalman filter is a recursion, for <span class="math">\(t = 2, \dots, n\)</span>
+the prior state mean and prior state covariance matrix are given as the output
+of the previous recursion. For <span class="math">\(t = 1\)</span>, however, no previous recursion
+has been yet applied, and so the mean <span class="math">\(a_1\)</span> and covariance <span class="math">\(P_1\)</span> of
+the distribution of the initial state <span class="math">\(\alpha_1 \sim N(a_1, P_1)\)</span> must
+be specified. The specification of the distribution of the initial state is
+referred to as <em>initialization</em>.</p>
+<p>There are four methods typically used to initialize the Kalman filter:
+(1) if the distribution is known or is otherwise specified, initialize with
+the known values; (2) initialize with the unconditional distribution of the
+process (this is only applicable to the case of stationary state processes);
+(3) initialize with a diffuse (i.e. infinite variance) distribution;
+(4) initialize with an approximate diffuse distribution, i.e. <span class="math">\(a_1 = 0\)</span>
+and <span class="math">\(P_1 = \kappa I\)</span> where <span class="math">\(\kappa\)</span> is some large constant (for
+example <span class="math">\(\kappa = 10^6\)</span>). When the state has multiple elements, a mixture
+of these four approaches can be used, as appropriate.</p>
+<p>Of course, if options (1) or (2) are available, they are preferred. In the case
+that there are non-stationary components with unknown initial distribution,
+either (3) or (4) must be employed. While (4) is simple to use,
+<a class="reference internal" href="9-references.html#durbin-time-2012" id="id8">[10]</a> note that &#8220;while the device can be useful for
+approximate exploratory work, it is not recommended for general use since it
+can lead to large rounding errors;&#8221; for that reason they recommend using exact
+diffuse initialiation. For more about initialization, see
+<a class="reference internal" href="9-references.html#koopman-filtering-2003" id="id9">[20]</a> and chapter 5 of <a class="reference internal" href="9-references.html#durbin-time-2012" id="id10">[10]</a>.</p>
+<p>Note that when diffuse initialization is applied, a number of initial
+loglikelihood values are excluded (&#8220;burned&#8221;) when calculating the joint
+loglikelihood, as they are considered under the influence of the diffuse
+states. In exact diffuse initialization the number of burned periods is
+determined in initialization, but in the approximate case it must be specified.
+In this case, it is typically set equal to the dimension of the state vector;
+it turns out that this often coincides with the value in the exact case.</p>
+</div>
+<div class="section" id="state-and-disturbance-smoothers">
+<h2>State and disturbance smoothers<a class="headerlink" href="#state-and-disturbance-smoothers" title="Permalink to this headline">¶</a></h2>
+<p>The state and disturbance smoothers, as applied to the state space model above,
+are recursive formulas running backwards through time
+(<span class="math">\(t = n, n-1, \dots, 1\)</span>) providing optimal estimates of the unknown
+state and disturbance vectors based on the full sample of observations.</p>
+<p>As developed in <a class="reference internal" href="9-references.html#koopman-disturbance-1993" id="id11">[21]</a> and Chapter 4 of
+<a class="reference internal" href="9-references.html#durbin-time-2012" id="id12">[10]</a>, following an application of the Kalman filter
+(yielding the predicted and filtered estimates of the state) the smoothing
+recursions can be written as (where <span class="math">\(L_t = T_t - K_t Z_t\)</span>)</p>
+<div class="math" id="equation-smoothers">
+<span class="eqno">(3)</span>\[\begin{split}\hat \alpha_t &amp; = a_t + P_t r_{t-1} \qquad \qquad &amp; V_t = P_t - P_t N_{t-1} P_t \\
+\hat \varepsilon_t &amp; = H_t u_t &amp; Var(\varepsilon_t \mid Y_n) = H_t - H_t (F_t^{-1} + K_t' N_t K_t) H_t \\
+\hat \eta_t &amp; = Q_t R_t' r_t &amp; Var(\eta_t \mid Y_n) = Q_t - Q_t R_t' N_t R_t Q_t \\
+u_t &amp; = F_t^{-1} v_t - K_t' r_t \\
+r_{t-1} &amp; = Z_t' u_t + T_t' r_t &amp; N_{t-1} = Z_t' F_t^{-1} Z_t + L_t' N_t L_t\end{split}\]</div>
+<p>The dimensions of each of the objects, as well as the name
+by which we will refer to them, are given in <a class="reference internal" href="#table-smoothers"><span class="std std-numref">Table 3</span></a>.</p>
+<table border="1" class="docutils" id="id32">
+<span id="table-smoothers"></span><caption><span class="caption-number">Table 3 </span><span class="caption-text">Elements of state and disturbance smoother recursions</span><a class="headerlink" href="#id32" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="34%" />
+<col width="48%" />
+<col width="18%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Object</th>
+<th class="head">Description</th>
+<th class="head">Dimensions</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(\hat \alpha_t\)</span></td>
+<td>Smoothed state mean</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(V_t\)</span></td>
+<td>Smoothed state covariance matrix</td>
+<td><span class="math">\(m \times m\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\hat \varepsilon_t\)</span></td>
+<td>Smoothed observation disturbance mean</td>
+<td><span class="math">\(p \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(Var(\varepsilon_t \mid Y_n)\)</span></td>
+<td>Smoothed observation disturbance covariance matrix</td>
+<td><span class="math">\(p \times p\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\hat \eta_t\)</span></td>
+<td>Smoothed state disturbance mean</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(Var(\eta_t \mid Y_n)\)</span></td>
+<td>Smoothed state disturbance covariance matrix</td>
+<td><span class="math">\(m \times m\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(u_t\)</span></td>
+<td>Smoothing error</td>
+<td><span class="math">\(p \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(r_{t-1}\)</span></td>
+<td>Scaled smoothed estimator</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(N_{t-1}\)</span></td>
+<td>Scaled smoothed estimator covariance matrix</td>
+<td><span class="math">\(m \times m\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="simulation-smoother">
+<h2>Simulation smoother<a class="headerlink" href="#simulation-smoother" title="Permalink to this headline">¶</a></h2>
+<p>The simulation smoother, developed in <a class="reference internal" href="9-references.html#durbin-simple-2002" id="id13">[9]</a> and Chapter 4
+of <a class="reference internal" href="9-references.html#durbin-time-2012" id="id14">[10]</a>, allows drawing samples from the distributions of
+the full state and disturbance vectors, conditional on the full sample of
+observations. It is an example of a &#8220;forwards filtering, backwards sampling&#8221;
+algorithm because one application of the simulation smoother requires one
+application each of the Kalman filter and state / disturbance smoother. An
+often-used alternative forwards filtering, backwards sampling algorithm is that
+of <a class="reference internal" href="9-references.html#carter-gibbs-1994" id="id15">[5]</a>.</p>
+<p>The output of the simulation smoother is the drawn samples; the dimensions of
+each of the objects, as well as the name by which we will refer to them, are
+given in <a class="reference internal" href="#table-simsmoothers"><span class="std std-numref">Table 4</span></a>.</p>
+<table border="1" class="docutils" id="id33">
+<span id="table-simsmoothers"></span><caption><span class="caption-number">Table 4 </span><span class="caption-text">Output of the simulation smoother</span><a class="headerlink" href="#id33" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="38%" />
+<col width="42%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Object</th>
+<th class="head">Description</th>
+<th class="head">Dimensions</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(\tilde \alpha_t\)</span></td>
+<td>Simulated state</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\tilde \varepsilon_t\)</span></td>
+<td>Simulated observation disturbance</td>
+<td><span class="math">\(p \times 1\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\tilde \eta_t\)</span></td>
+<td>Simulated state disturbance</td>
+<td><span class="math">\(m \times 1\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="practical-considerations">
+<h2>Practical considerations<a class="headerlink" href="#practical-considerations" title="Permalink to this headline">¶</a></h2>
+<p>There are a number of important practical considerations associated with the
+implementation of the Kalman filter and smoothers in computer code. Two of the
+most important are numerical stability and computational speed; these issues
+are briefly described below, but will be revisited when the Python
+implementation is discussed.</p>
+<p>In the context of the Kalman filter, numerical stability usually refers to the
+possibility that the recursive calculations will not maintain the positive
+definiteness or symmetry of the various covariance matrices. Numerically stable
+routines can be used to mitigate these concerns, for example using linear
+solvers rather than matrix inversion. In extreme cases a numerically stable
+Kalman filter, the so-called square-root Kalman filter, can be used (see
+<a class="reference internal" href="9-references.html#morf-square-root-1975" id="id16">[25]</a> or chapter 6.3 of <a class="reference internal" href="9-references.html#durbin-time-2012" id="id17">[10]</a>).</p>
+<p>Performance can be an issue because the Kalman filter largely consists
+of iterations (loops) and matrix operations, and it is well known that loops
+perform poorly in interpreted languages like MATLAB and Python. <a class="footnote-reference" href="#id20" id="id18">[2]</a>
+Furthermore, regardless of the high-level programming language used, matrix
+operations are usually ultimately performed by the highly optimized BLAS and
+LAPACK libraries written in Fortran. For performant code, compiled languages
+are preferred, and code should directly call the BLAS and LAPACK libraries
+directly when possible, rather than through intermediate functions (for details
+on the BLAS and LAPACK libraries, see <a class="reference internal" href="9-references.html#anderson-lapack-1999" id="id19">[1]</a>).</p>
+<table class="docutils footnote" frame="void" id="id20" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id18">[2]</a></td><td>The availability of a just-in-time (JIT) compiler can help with loop
+performance in interpreted languages; one is integrated into MATLAB, and
+the Numba project introduces one into Python.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="additional-remarks">
+<h2>Additional remarks<a class="headerlink" href="#additional-remarks" title="Permalink to this headline">¶</a></h2>
+<p>Several additional remarks are merited about the Kalman filter. First, under
+certain conditions, for example a time-invariant model, the Kalman filter will
+converge, meaning that the predicted state covariance matrix, the forecast
+error covariance matrix, and the Kalman gain matrix will all reach steady-state
+values after some number of iterations. This can be exploited to improve
+performance.</p>
+<p>The second remark has to do with missing data. In the case of completely or
+partially missing observations, not only can the Kalman filter proceed with
+making optimal estimates of the state vector, it can provide optimal
+estimates of the missing data.</p>
+<p>Third, the state space approach can be used to obtain optimal forecasts and to
+explore impulse response functions.</p>
+<p>Finally, the state space approach can be used for parameter estimation, either
+through classical methods (for example maximum likelihood estimation) or
+Bayesian methods (for example posterior simulation via Markov chain Monte
+Carlo). This will be described in detail in sections 4 and 5, below.</p>
+</div>
+<div class="section" id="example-models">
+<h2>Example models<a class="headerlink" href="#example-models" title="Permalink to this headline">¶</a></h2>
+<p>As mentioned above, many important time series models can be represented in
+state space form. We present three models in detail to use as examples: an
+autoregressive moving average (ARMA) model, the local level model, and a simple
+real business cycle (RBC) dynamic stochastic general equilibrium (DSGE) model.</p>
+<p>In fact, general versions of several time series models have already been
+implemented in Statsmodels and are available for use (see
+<a class="reference internal" href="6-out-of-the-box_models.html#out-of-the-box-models"><span class="std std-ref">Out-of-the-box models</span></a> for details).
+However, since the goal here is to provide information sufficient for users to
+specify and estimate their own custom models, we emphasize the translation of
+a model from state space formulation to Python code. Below we present state
+space representations mathematically, and in subsequent sections we describe
+their representation in Python code.</p>
+<div class="section" id="arma-1-1-model">
+<h3>ARMA(1, 1) model<a class="headerlink" href="#arma-1-1-model" title="Permalink to this headline">¶</a></h3>
+<p>Autoregressive moving average models are widespread in the time series
+literature, so we will assume the reader is familiar with their basic
+motivation and theory. Suffice it to say, these models are often successfully
+applied to obtain reduced form estimates of the dynamics exhibited by time
+series and to produce forecasts. For more details, see any introductory time
+series text.</p>
+<p>An ARMA(1,1) process (where we suppose <span class="math">\(y_t\)</span> has already been demeaned)
+can be written as</p>
+<div class="math">
+\[y_t = \phi y_{t-1} + \varepsilon_t + \theta_1 \varepsilon_{t-1}, \qquad \varepsilon_t \sim N(0, \sigma^2)\]</div>
+<p>It is well known that any autoregressive moving average model can be
+represented in state-space form, and furthermore that there are many equivalent
+representations. Below we present one possible representation based on
+<a class="reference internal" href="9-references.html#hamilton-time-1994" id="id21">[12]</a>, with the corresponding notation from <a href="#equation-sspace">(1)</a>
+given below each matrix.</p>
+<div class="math" id="equation-arma11">
+<span class="eqno">(4)</span>\[\begin{split}y_t &amp; = \underbrace{\begin{bmatrix} 1 &amp; \theta_1 \end{bmatrix}}_{Z} \underbrace{\begin{bmatrix} \alpha_{1,t} \\ \alpha_{2,t} \end{bmatrix}}_{\alpha_t} \\
+\begin{bmatrix} \alpha_{1,t+1} \\ \alpha_{2,t+1} \end{bmatrix} &amp; = \underbrace{\begin{bmatrix}
+    \phi &amp; 0 \\
+    1      &amp; 0     \\
+\end{bmatrix}}_{T} \begin{bmatrix} \alpha_{1,t} \\ \alpha_{2,t} \end{bmatrix} +
+\underbrace{\begin{bmatrix} 1 \\ 0 \end{bmatrix}}_{R} \underbrace{\varepsilon_{t+1}}_{\eta_t} \\\end{split}\]</div>
+<p>One feature of ARMA(p,q) models generally is that if the assumption
+of stationarity holds, the Kalman filter can be initialized with the
+unconditional distribution of the time series.</p>
+<p>As an application of this model, in what follows we will consider applying an
+ARMA(1,1) model to inflation (first difference of the logged US consumer price
+index). This data can be obtained from the Federal Reserve Economic Database
+(FRED) produced by the Federal Reserve Bank of St. Louis. In particular, this
+data can be easily obtained using the Python package pandas-datareader. <a class="footnote-reference" href="#id23" id="id22">[3]</a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pandas_datareader.data</span> <span class="k">import</span> <span class="n">DataReader</span>
+<span class="n">cpi</span> <span class="o">=</span> <span class="n">DataReader</span><span class="p">(</span><span class="s1">&#39;CPIAUCNS&#39;</span><span class="p">,</span> <span class="s1">&#39;fred&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s1">&#39;1971-01&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;2016-12&#39;</span><span class="p">)</span>
+<span class="n">cpi</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">(</span><span class="n">cpi</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;MS&#39;</span><span class="p">)</span>
+<span class="n">inf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">cpi</span><span class="p">)</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;QS&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">diff</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">*</span> <span class="mi">400</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#figure-2-inf"><span class="std std-numref">Fig. 1</span></a> shows the resulting time series.</p>
+<div class="figure" id="id34">
+<span id="figure-2-inf"></span><img alt="../_images/fig_2-inf.png" src="../_images/fig_2-inf.png" />
+<p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">Time path of US CPI inflation from 1971:Q1 - 2016:Q4.</span></p>
+</div>
+<table class="docutils footnote" frame="void" id="id23" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id22">[3]</a></td><td>This is for illustration purposes only, since an ARMA(1, 1) model with
+mean zero is not a good model for quarterly CPI inflation.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="local-level-model">
+<h3>Local level model<a class="headerlink" href="#local-level-model" title="Permalink to this headline">¶</a></h3>
+<p>The local level model generalizes the concept of intercept (i.e. &#8220;level&#8221;) in a
+linear regression to be time-varying. Much has been written about this model,
+and the second chapter of <a class="reference internal" href="9-references.html#durbin-time-2012" id="id24">[10]</a> is devoted to it. It can be
+written as</p>
+<div class="math" id="equation-llevel">
+<span class="eqno">(5)</span>\[\begin{split}y_t &amp; = \mu_t + \varepsilon_t, \qquad \varepsilon_t \sim N(0, \sigma_\varepsilon^2) \\
+\mu_{t+1} &amp; = \mu_t + \eta_t, \qquad \eta_t \sim N(0, \sigma_\eta^2) \\\end{split}\]</div>
+<p>This is already in state space form, with <span class="math">\(Z = T = R = 1\)</span>. This model is
+not stationary (the unobserved level follows a random walk), and so stationary
+initialization of the Kalman filter is impossible. Diffuse initialization,
+either approximate or exact, is required.</p>
+<p>As an application of this model, in what follows we will consider applying
+the local level model to the annual flow volume of the Nile river between 1871
+and 1970. This data is freely available from many sources, and is included in
+many econometrics analysis packages. Here, we use the data from the
+Python package Statsmodels.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">nile</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">nile</span><span class="o">.</span><span class="n">load_pandas</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span>
+<span class="n">nile</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&#39;1871&#39;</span><span class="p">,</span> <span class="s1">&#39;1970&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;AS&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#figure-2-nile"><span class="std std-numref">Fig. 2</span></a> shows the resulting time series.</p>
+<div class="figure" id="id35">
+<span id="figure-2-nile"></span><img alt="../_images/fig_2-nile.png" src="../_images/fig_2-nile.png" />
+<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">Annual flow volume of the Nile river 1871 - 1970.</span></p>
+</div>
+</div>
+<div class="section" id="real-business-cycle-model">
+<h3>Real business cycle model<a class="headerlink" href="#real-business-cycle-model" title="Permalink to this headline">¶</a></h3>
+<p>Linearized models can often be placed into state space form and evaluated
+using the Kalman filter. A very simple real business cycle model can be
+represented as <a class="footnote-reference" href="#id28" id="id25">[4]</a></p>
+<div class="math" id="equation-rbc">
+<span class="eqno">(6)</span>\[\begin{split}\begin{bmatrix} y_t \\ n_t \\ c_t \end{bmatrix} &amp; = \underbrace{\begin{bmatrix}
+    \phi_{yk} &amp; \phi_{yz} \\
+    \phi_{nk} &amp; \phi_{nz} \\
+    \phi_{ck} &amp; \phi_{cz} \\
+\end{bmatrix}}_{Z} \underbrace{\begin{bmatrix} k_t \\ z_t \end{bmatrix}}_{\alpha_t} +
+\underbrace{\begin{bmatrix} \varepsilon_{y,t} \\ \varepsilon_{n,t} \\ \varepsilon_{c,t} \end{bmatrix}}_{\varepsilon_t}, \qquad \varepsilon_t \sim N \left ( \begin{bmatrix} 0 \\ 0 \\ 0\end{bmatrix}, \begin{bmatrix}
+    \sigma_{y}^2 &amp; 0 &amp; 0 \\
+    0 &amp; \sigma_{n}^2 &amp; 0 \\
+    0 &amp; 0 &amp; \sigma_{c}^2 \\
+\end{bmatrix} \right ) \\
+\begin{bmatrix} k_{t+1} \\ z_{t+1} \end{bmatrix} &amp; = \underbrace{\begin{bmatrix}
+    T_{kk} &amp; T_{kz} \\
+    0      &amp; \rho
+\end{bmatrix}}_{T} \begin{bmatrix} k_t \\ z_t \end{bmatrix} +
+\underbrace{\begin{bmatrix} 0 \\ 1 \end{bmatrix}}_{R}
+\eta_t, \qquad \eta_t \sim N(0, \sigma_z^2)\end{split}\]</div>
+<p>where <span class="math">\(y_t\)</span> is output, <span class="math">\(n_t\)</span> is hours worked, <span class="math">\(c_t\)</span> is
+consumption, <span class="math">\(k_t\)</span> is capital, and <span class="math">\(z_t\)</span> is a technology shock
+process. In this formulation, output, hours worked, and consumption are
+observable whereas the capital stock and technology process are unobserved.
+This model can be developed as the linearized output of a fully microfounded
+DSGE model, see for example <a class="reference internal" href="9-references.html#ruge-murcia-methods-2007" id="id26">[27]</a> or
+<a class="reference internal" href="9-references.html#dejong-structural-2011" id="id27">[8]</a>. In the theoretical model, the variables are
+assumed to be stationary.</p>
+<p>There are six structural parameters of this RBC model:
+the discount rate, the marginal disutility of labor, the depreciation rate,
+the capital-share of output, the technology shock persistence, and the
+technology shock innovation variance. It is important to note that the
+reduced form parameters of the state space representation (for example
+<span class="math">\(\phi_{yk}\)</span>) are complicated and non-linear functions of these underlying structural parameters.</p>
+<p>The raw observable data can be obtained from FRED, although it must be
+transformed to be consistent with the model (for example to induce
+stationarity). For an explanation of the datasets used and the transformations,
+see either of the two references above.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pandas_datareader.data</span> <span class="k">import</span> <span class="n">DataReader</span>
+<span class="n">start</span> <span class="o">=</span> <span class="s1">&#39;1984-01&#39;</span>
+<span class="n">end</span> <span class="o">=</span> <span class="s1">&#39;2016-09&#39;</span>
+<span class="n">labor</span> <span class="o">=</span> <span class="n">DataReader</span><span class="p">(</span><span class="s1">&#39;HOANBS&#39;</span><span class="p">,</span> <span class="s1">&#39;fred&#39;</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;QS&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="n">cons</span> <span class="o">=</span> <span class="n">DataReader</span><span class="p">(</span><span class="s1">&#39;PCECC96&#39;</span><span class="p">,</span> <span class="s1">&#39;fred&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;QS&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="n">inv</span> <span class="o">=</span> <span class="n">DataReader</span><span class="p">(</span><span class="s1">&#39;GPDIC1&#39;</span><span class="p">,</span> <span class="s1">&#39;fred&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;QS&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="n">pop</span> <span class="o">=</span> <span class="n">DataReader</span><span class="p">(</span><span class="s1">&#39;CNP16OV&#39;</span><span class="p">,</span> <span class="s1">&#39;fred&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+<span class="n">pop</span> <span class="o">=</span> <span class="n">pop</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;QS&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>  <span class="c1"># Convert pop from monthly to quarterly observations</span>
+<span class="n">recessions</span> <span class="o">=</span> <span class="n">DataReader</span><span class="p">(</span><span class="s1">&#39;USRECQ&#39;</span><span class="p">,</span> <span class="s1">&#39;fred&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+<span class="n">recessions</span> <span class="o">=</span> <span class="n">recessions</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;QS&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">last</span><span class="p">()[</span><span class="s1">&#39;USRECQ&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+<span class="c1"># Get in per-capita terms</span>
+<span class="n">N</span> <span class="o">=</span> <span class="n">labor</span><span class="p">[</span><span class="s1">&#39;HOANBS&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">6</span><span class="n">e4</span> <span class="o">/</span> <span class="n">pop</span><span class="p">[</span><span class="s1">&#39;CNP16OV&#39;</span><span class="p">]</span>
+<span class="n">C</span> <span class="o">=</span> <span class="p">(</span><span class="n">cons</span><span class="p">[</span><span class="s1">&#39;PCECC96&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">1</span><span class="n">e6</span> <span class="o">/</span> <span class="n">pop</span><span class="p">[</span><span class="s1">&#39;CNP16OV&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="mi">4</span>
+<span class="n">I</span> <span class="o">=</span> <span class="p">(</span><span class="n">inv</span><span class="p">[</span><span class="s1">&#39;GPDIC1&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">1</span><span class="n">e6</span> <span class="o">/</span> <span class="n">pop</span><span class="p">[</span><span class="s1">&#39;CNP16OV&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="mi">4</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">I</span>
+
+<span class="c1"># Log, detrend</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span><span class="o">.</span><span class="n">diff</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">diff</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">diff</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+<span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">I</span><span class="p">)</span><span class="o">.</span><span class="n">diff</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+<span class="n">rbc_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="n">y</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">rbc_data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="s1">&#39;labor&#39;</span><span class="p">,</span> <span class="s1">&#39;consumption&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#figure-2-rbc"><span class="std std-numref">Fig. 3</span></a> shows the resulting time series.</p>
+<div class="figure" id="id36">
+<span id="figure-2-rbc"></span><img alt="../_images/fig_2-rbc.png" src="../_images/fig_2-rbc.png" />
+<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">US output, labor, and consumption time series 1984:Q1 - 2016:Q4.</span></p>
+</div>
+<table class="docutils footnote" frame="void" id="id28" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id25">[4]</a></td><td>Note that this simple RBC model is presented for illustration purposes
+and so we aim for brevity and clarity of exposition rather than a
+state-of-the-art description of the economy.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="parameter-estimation">
+<h2>Parameter estimation<a class="headerlink" href="#parameter-estimation" title="Permalink to this headline">¶</a></h2>
+<p>In order to accomodate parameter estimation, we need to introduce a couple of
+new ideas, since the generic state space model described above considers
+matrices with known values. In particular (following the notation in Chapter 7
+of <a class="reference internal" href="9-references.html#durbin-time-2012" id="id29">[10]</a>), suppose that the unknown parameters are
+collected into a vector <span class="math">\(\psi\)</span>. Then each of the state space
+representation matrices can be considered as, and written as, a function of the
+parameters. For example, to take into account the dependence on the unknown
+parameters, we write the design matrix as <span class="math">\(Z_t(\psi)\)</span>.</p>
+<p>The three methods for parameter estimation considered in this paper perform
+filtering, smoothing, and / or simulation smoothing iteratively, where each
+iteration has a (generally) different set of parameter values. Given this
+iterative approach, it is clear that in order to perform parameter estimation
+we will need two new elements: first, we must have the mappings from parameter
+values to fully specified system matrices; second, the iterations must begin
+with some initial parameter values and these must be specified.</p>
+<p>The first element has already been introduced in the three examples above,
+since the state space matrices were written with known values (such as
+<span class="math">\(1\)</span> and <span class="math">\(0\)</span>) as well as with unknown parameters (for example
+<span class="math">\(\phi\)</span> in the ARMA(1,1) model). The second element will be described
+separately for each of parameter estimation methods, below.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="3-python_representation.html" title="Representation in Python"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="1-introduction.html" title="Introduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Chad Fulton.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.4.4.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

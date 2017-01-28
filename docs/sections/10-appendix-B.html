@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Appendix B: Inherited attributes and methods &mdash; State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Appendix C: Real business cycle model code" href="10-appendix-C.html" />
+    <link rel="prev" title="Appendix A: Installation" href="10-appendix-A.html" /><!--<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>-->
+<link href="../_static/google-fonts.css" rel="stylesheet">
+<link href="../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="10-appendix-C.html" title="Appendix C: Real business cycle model code"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="10-appendix-A.html" title="Appendix A: Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Appendix B: Inherited attributes and methods</a><ul>
+<li><a class="reference internal" href="#sm-tsa-statespace-mlemodel"><code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code></a></li>
+<li><a class="reference internal" href="#sm-tsa-statespace-mleresults"><code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEResults</span></code></a></li>
+<li><a class="reference internal" href="#simulationsmoothresults"><code class="docutils literal"><span class="pre">SimulationSmoothResults</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="10-appendix-A.html"
+                        title="previous chapter">Appendix A: Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="10-appendix-C.html"
+                        title="next chapter">Appendix C: Real business cycle model code</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/sections/10-appendix-B.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="appendix-b-inherited-attributes-and-methods">
+<span id="appendix-b"></span><h1>Appendix B: Inherited attributes and methods<a class="headerlink" href="#appendix-b-inherited-attributes-and-methods" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="sm-tsa-statespace-mlemodel">
+<h2><code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code><a class="headerlink" href="#sm-tsa-statespace-mlemodel" title="Permalink to this headline">¶</a></h2>
+<p>The methods available to all classes inheriting from the base classes
+<code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code> are listed in
+<a class="reference internal" href="#table-mlemodel-methods"><span class="std std-numref">Table 7</span></a> and the attributes are listed in
+<a class="reference internal" href="#table-mlemodel-attributes"><span class="std std-numref">Table 8</span></a>.</p>
+<table border="1" class="docutils" id="id1">
+<span id="table-mlemodel-methods"></span><caption><span class="caption-number">Table 7 </span><span class="caption-text">Methods available to subclasses of <code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code></span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="38%" />
+<col width="63%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">filter</span></code></td>
+<td>Kalman filtering</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fit</span></code></td>
+<td>Fits the model by maximum likelihood via Kalman filter.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">loglike</span></code></td>
+<td>Joint loglikelihood evaluation</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">loglikeobs</span></code></td>
+<td>Loglikelihood evaluation</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">set_filter_method</span></code></td>
+<td>Set the filtering method</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">set_inversion_method</span></code></td>
+<td>Set the inversion method</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">set_stability_method</span></code></td>
+<td>Set the numerical stability method</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">set_conserve_memory</span></code></td>
+<td>Set the memory conservation method</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">set_smoother_output</span></code></td>
+<td>Set the smoother output</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">simulation_smoother</span></code></td>
+<td>Retrieve a simulation smoother for the statespace model.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">initialize_known</span></code></td>
+<td>Initialize the Kalman filter with known values</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">initialize_approximate_diffuse</span></code></td>
+<td>Specify approximate diffuse Kalman filter initialization</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">initialize_stationary</span></code></td>
+<td>Initialize the statespace model as stationary</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">simulate</span></code></td>
+<td>Simulate a new time series following the state space model</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">impulse_responses</span></code></td>
+<td>Impulse response function</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="docutils" id="id2">
+<span id="table-mlemodel-attributes"></span><caption><span class="caption-number">Table 8 </span><span class="caption-text">Attributes available to subclasses of <code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code></span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Attribute</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">endog</span></code></td>
+<td>The observed (endogenous) dataset</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">exog</span></code></td>
+<td>The dataset of explanatory variables (if applicable)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">start_params</span></code></td>
+<td>Parameter vector used to initialize parameter estimation iterations</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">param_names</span></code></td>
+<td>Human-readable names of parameters</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">initialization</span></code></td>
+<td>The selected method for Kalman filter initialization</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">initial_variance</span></code></td>
+<td>The initial variance to use in approximate diffuse initialization</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">loglikelihood_burn</span></code></td>
+<td>The number of observations during which the likelihood is not evaluated</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tolerance</span></code></td>
+<td>The tolerance at which the Kalman filter determines convergence to steady-state</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="docutils" id="id3">
+<span id="table-mlemodel-slices"></span><caption><span class="caption-number">Table 9 </span><span class="caption-text">Slice keys available to subclasses of <code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEModel</span></code></span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Attribute</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'obs_intercept'</span></code></td>
+<td>Observation intercept; <span class="math">\(d_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'design'</span></code></td>
+<td>Design matrix; <span class="math">\(Z_t\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'obs_cov'</span></code></td>
+<td>Observation disturbance covariance matrix; <span class="math">\(H_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'state_intercept'</span></code></td>
+<td>State intercept; <span class="math">\(c_t\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'transition'</span></code></td>
+<td>Transition matrix; <span class="math">\(T_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">'selection'</span></code></td>
+<td>Selection matrix; <span class="math">\(R_t\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">'state_cov'</span></code></td>
+<td>State disturbance covariance matrix; <span class="math">\(Q_t\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal"><span class="pre">fit</span></code>, <code class="docutils literal"><span class="pre">filter</span></code>, and <code class="docutils literal"><span class="pre">smooth</span></code> methods return a
+<code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEResults</span></code> object; its methods and attributes are given
+below.</p>
+<p>The <code class="docutils literal"><span class="pre">simulation_smoother</span></code> method returns a <code class="docutils literal"><span class="pre">SimulationSmoothResults</span></code>
+object; its methods and attributes are also given below.</p>
+</div>
+<div class="section" id="sm-tsa-statespace-mleresults">
+<h2><code class="docutils literal"><span class="pre">sm.tsa.statespace.MLEResults</span></code><a class="headerlink" href="#sm-tsa-statespace-mleresults" title="Permalink to this headline">¶</a></h2>
+<p>The methods available to these results objects are listed in
+<a class="reference internal" href="#table-mleresults-methods"><span class="std std-numref">Table 10</span></a> and the attributes are listed in
+<a class="reference internal" href="#table-mleresults-attributes"><span class="std std-numref">Table 11</span></a>.</p>
+<table border="1" class="docutils" id="id4">
+<span id="table-mleresults-methods"></span><caption><span class="caption-number">Table 10 </span><span class="caption-text">Methods available to results objects from <code class="docutils literal"><span class="pre">fit</span></code>, <code class="docutils literal"><span class="pre">filter</span></code>, and <code class="docutils literal"><span class="pre">smooth</span></code></span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="26%" />
+<col width="74%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">test_normality</span></code></td>
+<td>Jarque-Bera for normality of standardized residuals.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">test_heteroskedasticity</span></code></td>
+<td>Test for heteroskedasticity (break in the variance) of standardized residuals</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">test_serial_correlation</span></code></td>
+<td>Ljung-box test for no serial correlation of standardized residuals</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">get_prediction</span></code></td>
+<td>In-sample prediction and out-of-sample forecasting; returns all prediction results</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">get_forecast</span></code></td>
+<td>Out-of-sample forecasts; returns all forecasting results</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">predict</span></code></td>
+<td>In-sample prediction and out-of-sample forecasting; only returns predicted values</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">forecast</span></code></td>
+<td>Out-of-sample forecasts; only returns forecasted values</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">simulate</span></code></td>
+<td>Simulate a new time series following the state space model</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">impulse_responses</span></code></td>
+<td>Impulse response function</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">plot_diagnostics</span></code></td>
+<td>Diagnostic plots for standardized residuals of one endogenous variable</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">summary</span></code></td>
+<td>Summarize the results</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="docutils" id="id5">
+<span id="table-mleresults-attributes"></span><caption><span class="caption-number">Table 11 </span><span class="caption-text">Attributes available to results objects from <code class="docutils literal"><span class="pre">fit</span></code>, <code class="docutils literal"><span class="pre">filter</span></code>, and <code class="docutils literal"><span class="pre">smooth</span></code></span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="31%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Attribute</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">aic</span></code></td>
+<td>Akaike Information Criterion</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">bic</span></code></td>
+<td>Bayes Information Criterion</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">bse</span></code></td>
+<td>Standard errors of fitted parameters</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">conf_int</span></code></td>
+<td>Returns the confidence interval of the fitted parameters</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">cov_params_default</span></code></td>
+<td>Covariance matrix of fitted parameters</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">filtered_state</span></code></td>
+<td>Filtered state mean; <span class="math">\(a_{t|t}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">filtered_state_cov</span></code></td>
+<td>Filtered state covariance matrix; <span class="math">\(P_{t|t}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fittedvalues</span></code></td>
+<td>Fitted values of the model; alias for forecasts.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">forecasts</span></code></td>
+<td>Forecasts; <span class="math">\(\hat y_t = Z_t a_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">forecasts_error</span></code></td>
+<td>Forecast errors; <span class="math">\(v_t\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">forecasts_error_cov</span></code></td>
+<td>Forecast error covariance matrix; <span class="math">\(F_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">hqic</span></code></td>
+<td>Hannan-Quinn Information Criterion</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">kalman_gain</span></code></td>
+<td>Kalman gain; <span class="math">\(K_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">llf_obs</span></code></td>
+<td>The values of the loglikelihood function at the fitted parameters; <span class="math">\(\log L(y_t)\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">llf</span></code></td>
+<td>The value of the joint loglikelihood function at the fitted parameters; <span class="math">\(\log L(Y_n)\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">loglikelihood_burn</span></code></td>
+<td>The number of observations during which the likelihood is not evaluated</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">nobs</span></code></td>
+<td>The number of observations in the dataset</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">params</span></code></td>
+<td>The fitted parameters</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">predicted_state</span></code></td>
+<td>Predicted state mean; <span class="math">\(a_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">predicted_state_cov</span></code></td>
+<td>Predicted state covariance matrix; <span class="math">\(P_t\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">pvalues</span></code></td>
+<td>The p-values associated with the z-statistics of the coefficients</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">resid</span></code></td>
+<td>Residuals of the model; alias for forecasts_errors</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">smoothed_measurement_disturbance</span></code></td>
+<td>Smoothed observation disturbance mean; <span class="math">\(\hat \varepsilon_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">smoothed_measurement_disturbance_cov</span></code></td>
+<td>Smoothed observation disturbance covariance matrix; <span class="math">\(Var(\varepsilon_t \mid Y_n)\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">smoothed_state</span></code></td>
+<td>Smoothed state mean; <span class="math">\(\hat \alpha_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">smoothed_state_cov</span></code></td>
+<td>Smoothed state covariance matrix; <span class="math">\(V_t\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">smoothed_state_disturbance</span></code></td>
+<td>Smoothed state disturbance mean; <span class="math">\(\hat \eta_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">smoothed_state_disturbance_cov</span></code></td>
+<td>Smoothed state disturbance covariance matrix; <span class="math">\(Var(\eta_t \mid Y_n)\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">zvalues</span></code></td>
+<td>The z-values of the standard errors of fitted parameters</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="simulationsmoothresults">
+<h2><code class="docutils literal"><span class="pre">SimulationSmoothResults</span></code><a class="headerlink" href="#simulationsmoothresults" title="Permalink to this headline">¶</a></h2>
+<p>The only method of a <code class="docutils literal"><span class="pre">SimulationSmoothResults</span></code> object is given in
+<a class="reference internal" href="#table-simsmoother-methods"><span class="std std-numref">Table 12</span></a>. After this method is called, the
+attributes in <a class="reference internal" href="#table-simsmoother-attributes"><span class="std std-numref">Table 13</span></a> are populated. Each time
+the method is called, these attributes change to the newly simulated values.</p>
+<table border="1" class="docutils" id="id6">
+<span id="table-simsmoother-methods"></span><caption><span class="caption-number">Table 12 </span><span class="caption-text">Methods available to results objects from <code class="docutils literal"><span class="pre">simulation_smoother</span></code></span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="32%" />
+<col width="68%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Method</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">simulate</span></code></td>
+<td>Perform simulation smoothing</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="docutils" id="id7">
+<span id="table-simsmoother-attributes"></span><caption><span class="caption-number">Table 13 </span><span class="caption-text">Attributes available to results objects from <code class="docutils literal"><span class="pre">simulation_smoother</span></code></span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Attribute</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">simulated_state</span></code></td>
+<td>Simulated state vector; <span class="math">\(\tilde \alpha_t\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">simulated_measurement_disturbance</span></code></td>
+<td>Simulated measurment disturbance; <span class="math">\(\tilde \varepsilon_t\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">simulated_state_disturbance</span></code></td>
+<td>Simulated state disturbance; <span class="math">\(\tilde \eta_t\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="10-appendix-C.html" title="Appendix C: Real business cycle model code"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="10-appendix-A.html" title="Appendix A: Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Chad Fulton.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.4.4.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

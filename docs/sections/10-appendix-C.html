@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Appendix C: Real business cycle model code &mdash; State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation" href="../index.html" />
+    <link rel="prev" title="Appendix B: Inherited attributes and methods" href="10-appendix-B.html" /><!--<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>-->
+<link href="../_static/google-fonts.css" rel="stylesheet">
+<link href="../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="10-appendix-B.html" title="Appendix B: Inherited attributes and methods"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="10-appendix-B.html"
+                        title="previous chapter">Appendix B: Inherited attributes and methods</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/sections/10-appendix-C.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="appendix-c-real-business-cycle-model-code">
+<span id="appendix-c"></span><h1>Appendix C: Real business cycle model code<a class="headerlink" href="#appendix-c-real-business-cycle-model-code" title="Permalink to this headline">¶</a></h1>
+<p>This appendix presents Python code implementing the full real business cycle
+model, including solution of the linear rational expectations model, as
+described in <a class="reference internal" href="3-python_representation.html#representation-in-python"><span class="std std-ref">Representation in Python</span></a>. It also presents code for the
+parameter estimation by classical (see <a class="reference internal" href="4-maximum_likelihood_estimation.html#maximum-likelihood-estimation"><span class="std std-ref">Maximum Likelihood Estimation</span></a>)
+and Bayesian (see <a class="reference internal" href="5-posterior_simulation.html#posterior-simulation"><span class="std std-ref">Posterior Simulation</span></a>) methods.</p>
+<p>The following code implements the real business cycle model in Python as a
+state space model.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="k">class</span> <span class="nc">SimpleRBC</span><span class="p">(</span><span class="n">sm</span><span class="o">.</span><span class="n">tsa</span><span class="o">.</span><span class="n">statespace</span><span class="o">.</span><span class="n">MLEModel</span><span class="p">):</span>
+
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+        <span class="p">(</span><span class="s1">&#39;discount_rate&#39;</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;disutility_labor&#39;</span><span class="p">,</span> <span class="mf">3.</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;depreciation_rate&#39;</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;capital_share&#39;</span><span class="p">,</span> <span class="mf">0.36</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;technology_shock_persistence&#39;</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;technology_shock_var&#39;</span><span class="p">,</span> <span class="mf">0.04</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endog</span><span class="p">,</span> <span class="n">calibrated</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SimpleRBC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="n">endog</span><span class="p">,</span> <span class="n">k_states</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">k_posdef</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">initialization</span><span class="o">=</span><span class="s1">&#39;stationary&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_predetermined</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># Save the calibrated vs. estimated parameters</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">calibrated</span> <span class="o">=</span> <span class="n">calibrated</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+            <span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">calibrated</span><span class="p">[</span><span class="n">param</span><span class="p">])</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parameters</span>
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">calibrated</span>
+        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_calibrated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_estimated</span> <span class="o">=</span> <span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_calibrated</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_calibrated</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_estimated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_params</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_calibrated</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_cap_share</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;capital_share&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_tech_pers</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;technology_shock_persistence&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx_tech_var</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;technology_shock_var&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Setup fixed elements of system matrices</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;selection&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">start_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">structural_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_estimated</span><span class="p">]</span>
+        <span class="n">measurement_variances</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">structural_params</span><span class="p">,</span> <span class="n">measurement_variances</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">param_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">structural_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_estimated</span><span class="p">]</span>
+        <span class="n">measurement_variances</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.var&#39;</span> <span class="o">%</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">endog_names</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">structural_params</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">+</span> <span class="n">measurement_variances</span>
+
+    <span class="k">def</span> <span class="nf">log_linearize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="c1"># Extract the parameters</span>
+        <span class="p">(</span><span class="n">discount_rate</span><span class="p">,</span> <span class="n">disutility_labor</span><span class="p">,</span> <span class="n">depreciation_rate</span><span class="p">,</span> <span class="n">capital_share</span><span class="p">,</span>
+         <span class="n">technology_shock_persistence</span><span class="p">,</span> <span class="n">technology_shock_var</span><span class="p">)</span> <span class="o">=</span> <span class="n">params</span>
+
+        <span class="c1"># Temporary values</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">discount_rate</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">depreciation_rate</span><span class="p">))</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="n">capital_share</span> <span class="o">/</span> <span class="n">tmp</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">capital_share</span><span class="p">))</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">depreciation_rate</span> <span class="o">*</span> <span class="n">theta</span><span class="o">**</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">capital_share</span><span class="p">)</span>
+        <span class="n">zeta</span> <span class="o">=</span> <span class="n">capital_share</span> <span class="o">*</span> <span class="n">discount_rate</span> <span class="o">*</span> <span class="n">theta</span><span class="o">**</span><span class="p">(</span><span class="n">capital_share</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Coefficient matrices from linearization</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">B11</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">depreciation_rate</span> <span class="o">*</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">gamma</span><span class="p">))</span>
+        <span class="n">B12</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">depreciation_rate</span> <span class="o">*</span>
+               <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">capital_share</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">capital_share</span><span class="p">)</span> <span class="o">/</span>
+               <span class="p">(</span><span class="n">capital_share</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">gamma</span><span class="p">)))</span>
+        <span class="n">B21</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">B22</span> <span class="o">=</span> <span class="n">capital_share</span> <span class="o">/</span> <span class="p">(</span><span class="n">zeta</span> <span class="o">+</span> <span class="n">capital_share</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">zeta</span><span class="p">))</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">B11</span><span class="p">,</span> <span class="n">B12</span><span class="p">],</span> <span class="p">[</span><span class="n">B21</span><span class="p">,</span> <span class="n">B22</span><span class="p">]])</span>
+
+        <span class="n">C1</span> <span class="o">=</span> <span class="n">depreciation_rate</span> <span class="o">/</span> <span class="p">(</span><span class="n">capital_share</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">gamma</span><span class="p">))</span>
+        <span class="n">C2</span> <span class="o">=</span> <span class="p">(</span><span class="n">zeta</span> <span class="o">*</span> <span class="n">technology_shock_persistence</span> <span class="o">/</span>
+              <span class="p">(</span><span class="n">zeta</span> <span class="o">+</span> <span class="n">capital_share</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">zeta</span><span class="p">)))</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">C1</span><span class="p">],</span> <span class="p">[</span><span class="n">C2</span><span class="p">]])</span>
+
+        <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span>
+
+    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="n">capital_share</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_cap_share</span><span class="p">]</span>
+        <span class="n">technology_shock_persistence</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_tech_pers</span><span class="p">]</span>
+
+        <span class="c1"># Get the coefficient matrices from linearization</span>
+        <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_linearize</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># Jordan decomposition of B</span>
+        <span class="n">eigvals</span><span class="p">,</span> <span class="n">right_eigvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">B</span><span class="p">))</span>
+        <span class="n">left_eigvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">right_eigvecs</span><span class="p">)</span>
+
+        <span class="c1"># Re-order, ascending</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">eigvals</span><span class="p">)</span>
+        <span class="n">eigvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">eigvals</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+        <span class="n">left_eigvecs</span> <span class="o">=</span> <span class="n">left_eigvecs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="c1"># Blanchard-Khan conditions</span>
+        <span class="n">k_nonpredetermined</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_states</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_predetermined</span>
+        <span class="n">k_stable</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eigvals</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">k_unstable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_states</span> <span class="o">-</span> <span class="n">k_stable</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">k_stable</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_predetermined</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Blanchard-Kahn condition not met.&#39;</span>
+                               <span class="s1">&#39; Unique solution does not exist.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Create partition indices</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_predetermined</span>
+        <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span>
+
+        <span class="n">p11</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[:</span><span class="n">k</span><span class="p">,</span> <span class="p">:</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">p12</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[:</span><span class="n">k</span><span class="p">,</span> <span class="n">k</span><span class="p">:]</span>
+        <span class="n">p21</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="n">k</span><span class="p">:,</span> <span class="p">:</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">p22</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="n">k</span><span class="p">:,</span> <span class="n">k</span><span class="p">:]</span>
+
+        <span class="c1"># Decouple the system</span>
+        <span class="n">decoupled_C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">left_eigvecs</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
+
+        <span class="c1"># Solve the explosive component (controls) in terms of the</span>
+        <span class="c1"># non-explosive component (states) and shocks</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">left_eigvecs</span><span class="p">[</span><span class="n">p22</span><span class="p">])</span>
+
+        <span class="c1"># This is \phi_{ck}, above</span>
+        <span class="n">policy_state</span> <span class="o">=</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">left_eigvecs</span><span class="p">[</span><span class="n">p21</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="c1"># This is \phi_{cz}, above</span>
+        <span class="n">policy_shock</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">eigvals</span><span class="p">[</span><span class="n">p22</span><span class="p">])</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">k_nonpredetermined</span><span class="p">)</span> <span class="o">-</span>
+                    <span class="n">technology_shock_persistence</span> <span class="o">/</span> <span class="n">eigvals</span><span class="p">[</span><span class="n">p22</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">decoupled_C</span><span class="p">[</span><span class="n">p2</span><span class="p">])</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+        <span class="c1"># Solve for the non-explosive transition</span>
+        <span class="c1"># This is T_{kk}, above</span>
+        <span class="n">transition_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="n">p11</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="n">p12</span><span class="p">],</span> <span class="n">policy_state</span><span class="p">))</span>
+        <span class="c1"># This is T_{kz}, above</span>
+        <span class="n">transition_shock</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="n">p12</span><span class="p">],</span> <span class="n">policy_shock</span><span class="p">)</span> <span class="o">+</span> <span class="n">C</span><span class="p">[</span><span class="n">p1</span><span class="p">])</span>
+
+        <span class="c1"># Create the full design matrix</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">capital_share</span><span class="p">)</span> <span class="o">/</span> <span class="n">capital_share</span>
+        <span class="n">tmp1</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">capital_share</span>
+        <span class="n">design</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tmp</span> <span class="o">*</span> <span class="n">policy_state</span><span class="p">,</span> <span class="n">tmp1</span> <span class="o">-</span> <span class="n">tmp</span> <span class="o">*</span> <span class="n">policy_shock</span><span class="p">],</span>
+                           <span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tmp1</span> <span class="o">*</span> <span class="n">policy_state</span><span class="p">,</span> <span class="n">tmp1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">policy_shock</span><span class="p">)],</span>
+                           <span class="p">[</span><span class="n">policy_state</span><span class="p">,</span>            <span class="n">policy_shock</span><span class="p">]])</span>
+
+        <span class="c1"># Create the transition matrix</span>
+        <span class="n">transition</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">transition_state</span><span class="p">,</span> <span class="n">transition_shock</span><span class="p">],</span>
+                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span>                <span class="n">technology_shock_persistence</span><span class="p">]]))</span>
+
+        <span class="k">return</span> <span class="n">design</span><span class="p">,</span> <span class="n">transition</span>
+
+    <span class="k">def</span> <span class="nf">transform_discount_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">untransform</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Discount rate must be between 0 and 1</span>
+        <span class="n">epsilon</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">4</span>  <span class="c1"># bound it slightly away from exactly 0 or 1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">untransform</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">param</span><span class="p">))</span> <span class="o">-</span> <span class="n">epsilon</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">param</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">param</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">transform_disutility_labor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">untransform</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Disutility of labor must be positive</span>
+        <span class="k">return</span> <span class="n">param</span><span class="o">**</span><span class="mi">2</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">untransform</span> <span class="k">else</span> <span class="n">param</span><span class="o">**</span><span class="mf">0.5</span>
+
+    <span class="k">def</span> <span class="nf">transform_depreciation_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">untransform</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Depreciation rate must be positive</span>
+        <span class="k">return</span> <span class="n">param</span><span class="o">**</span><span class="mi">2</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">untransform</span> <span class="k">else</span> <span class="n">param</span><span class="o">**</span><span class="mf">0.5</span>
+
+    <span class="k">def</span> <span class="nf">transform_capital_share</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">untransform</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Capital share must be between 0 and 1</span>
+        <span class="n">epsilon</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">4</span>  <span class="c1"># bound it slightly away from exactly 0 or 1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">untransform</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">param</span><span class="p">))</span> <span class="o">-</span> <span class="n">epsilon</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">param</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">param</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">transform_technology_shock_persistence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">untransform</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Persistence parameter must be between -1 and 1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">untransform</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">param</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">param</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">param</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">param</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">transform_technology_shock_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unconstrained</span><span class="p">,</span> <span class="n">untransform</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Variances must be positive</span>
+        <span class="k">return</span> <span class="n">unconstrained</span><span class="o">**</span><span class="mi">2</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">untransform</span> <span class="k">else</span> <span class="n">unconstrained</span><span class="o">**</span><span class="mf">0.5</span>
+
+    <span class="k">def</span> <span class="nf">transform_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unconstrained</span><span class="p">):</span>
+        <span class="n">constrained</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">unconstrained</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">unconstrained</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span><span class="p">:</span>
+                <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;transform_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">param</span><span class="p">)</span>
+                <span class="n">constrained</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="n">unconstrained</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Measurement error variances must be positive</span>
+        <span class="n">constrained</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k_estimated</span><span class="p">:]</span> <span class="o">=</span> <span class="n">unconstrained</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k_estimated</span><span class="p">:]</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">constrained</span>
+
+    <span class="k">def</span> <span class="nf">untransform_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constrained</span><span class="p">):</span>
+        <span class="n">unconstrained</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">constrained</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">constrained</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span><span class="p">:</span>
+                <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;transform_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">param</span><span class="p">)</span>
+                <span class="n">unconstrained</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="n">constrained</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">untransform</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Measurement error variances must be positive</span>
+        <span class="n">unconstrained</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k_estimated</span><span class="p">:]</span> <span class="o">=</span> <span class="n">constrained</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k_estimated</span><span class="p">:]</span><span class="o">**</span><span class="mf">0.5</span>
+
+        <span class="k">return</span> <span class="n">unconstrained</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">SimpleRBC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Reconstruct the full parameter vector from the</span>
+        <span class="c1"># estimated and calibrated parameters</span>
+        <span class="n">structural_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_params</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">structural_params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_calibrated</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calibrated</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">structural_params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_estimated</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">k_estimated</span><span class="p">]</span>
+        <span class="n">measurement_variances</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">k_estimated</span><span class="p">:]</span>
+
+        <span class="c1"># Solve the model</span>
+        <span class="n">design</span><span class="p">,</span> <span class="n">transition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">structural_params</span><span class="p">)</span>
+
+        <span class="c1"># Update the statespace representation</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;design&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">design</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;obs_cov&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">measurement_variances</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;obs_cov&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">measurement_variances</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;obs_cov&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">measurement_variances</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;transition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transition</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;state_cov&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">structural_params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx_tech_var</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The following code estimates the three measurement variances as well as the
+two technology shock parameters via maximum likelihood estimation</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Now, estimate the discount rate and the shock parameters</span>
+<span class="n">partially_calibrated</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;discount_rate&#39;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
+    <span class="s1">&#39;disutility_labor&#39;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>
+    <span class="s1">&#39;capital_share&#39;</span><span class="p">:</span> <span class="mf">0.36</span><span class="p">,</span>
+    <span class="s1">&#39;depreciation_rate&#39;</span><span class="p">:</span> <span class="mf">0.025</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">mod</span> <span class="o">=</span> <span class="n">SimpleRBC</span><span class="p">(</span><span class="n">rbc_data</span><span class="p">,</span> <span class="n">calibrated</span><span class="o">=</span><span class="n">partially_calibrated</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;nm&#39;</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+
+<span class="n">estimated_irfs</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">impulse_responses</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="n">orthogonalized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+</pre></div>
+</div>
+<p>Finally, the following code estimates all parameters except the disutility of
+labor and the depreciation rate via the Metropolis-within-Gibbs algorithm</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">truncnorm</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">invgamma</span>
+
+<span class="k">def</span> <span class="nf">draw_posterior_rho</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">tmp</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">sigma2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">post_mean</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Z</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+    <span class="n">post_var</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">*</span> <span class="n">sigma2</span>
+
+    <span class="k">if</span> <span class="n">truncate</span><span class="p">:</span>
+        <span class="n">lower</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">post_mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">post_var</span><span class="o">**</span><span class="mf">0.5</span>
+        <span class="n">upper</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">post_mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">post_var</span><span class="o">**</span><span class="mf">0.5</span>
+        <span class="n">rvs</span> <span class="o">=</span> <span class="n">truncnorm</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">post_mean</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">post_var</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rvs</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">post_mean</span><span class="p">,</span> <span class="n">post_var</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">rvs</span>
+
+<span class="k">def</span> <span class="nf">draw_posterior_sigma2</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">rho</span><span class="p">):</span>
+    <span class="n">resid</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">rho</span> <span class="o">*</span> <span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">post_shape</span> <span class="o">=</span> <span class="mf">2.00005</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">nobs</span>
+    <span class="n">post_scale</span> <span class="o">=</span> <span class="mf">0.0100005</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">resid</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">invgamma</span><span class="p">(</span><span class="n">post_shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">post_scale</span><span class="p">)</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">SEED</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">statsmodels.tsa.statespace.tools</span> <span class="k">import</span> <span class="n">is_invertible</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">multivariate_normal</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">invgamma</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">uniform</span>
+
+<span class="c1"># Create the model for likelihood evaluation</span>
+<span class="n">calibrated</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;disutility_labor&#39;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>
+    <span class="s1">&#39;depreciation_rate&#39;</span><span class="p">:</span> <span class="mf">0.025</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">SimpleRBC</span><span class="p">(</span><span class="n">rbc_data</span><span class="p">,</span> <span class="n">calibrated</span><span class="o">=</span><span class="n">calibrated</span><span class="p">)</span>
+<span class="n">sim_smoother</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">simulation_smoother</span><span class="p">()</span>
+
+<span class="c1"># Specify priors</span>
+<span class="n">prior_discount</span> <span class="o">=</span> <span class="n">gamma</span><span class="p">(</span><span class="mf">6.25</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.04</span><span class="p">)</span>
+<span class="n">prior_cap_share</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">prior_meas_err</span> <span class="o">=</span> <span class="n">invgamma</span><span class="p">(</span><span class="mf">2.0025</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.10025</span><span class="p">)</span>
+
+<span class="c1"># Proposals</span>
+<span class="n">rw_discount</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">rw_cap_share</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">rw_meas_err</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.003</span><span class="p">)</span>
+
+<span class="c1"># Create storage arrays for the traces</span>
+<span class="n">n_iterations</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="n">trace_accepts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_iterations</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">trace</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">start_params</span>
+<span class="n">trace</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="n">trace</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">loglike</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="c1"># Iterations</span>
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="o">%</span> <span class="mi">10000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="n">s</span>
+    <span class="c1"># Get the parameters from the trace</span>
+    <span class="n">discount_rate</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span><span class="p">))</span>
+    <span class="n">capital_share</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">sigma2</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+    <span class="n">meas_vars</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">:]</span><span class="o">**</span><span class="mi">2</span>
+
+    <span class="c1"># 1. Gibbs step: draw the states using the simulation smoother</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">discount_rate</span><span class="p">,</span> <span class="n">capital_share</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">meas_vars</span><span class="p">])</span>
+    <span class="n">sim_smoother</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="n">sim_smoother</span><span class="o">.</span><span class="n">simulated_state</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># 2. Gibbs step: draw the autoregressive parameter, and apply</span>
+    <span class="c1"># rejection sampling to ensure an invertible lag polynomial</span>
+    <span class="c1"># In rare cases due to the combinations of other parameters,</span>
+    <span class="c1"># the mean of the normal posterior will be greater than one</span>
+    <span class="c1"># and it becomes difficult to draw from a normal distribution</span>
+    <span class="c1"># even with rejection sampling. In those cases we draw from a</span>
+    <span class="c1"># truncated normal.</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">draw_posterior_rho</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">rho</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">rho</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="n">e2</span><span class="p">:</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="n">draw_posterior_rho</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="n">draw_posterior_rho</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">rho</span>
+
+    <span class="c1"># 3. Gibbs step: draw the variance parameter</span>
+    <span class="n">sigma2</span> <span class="o">=</span> <span class="n">draw_posterior_sigma2</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+    <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigma2</span>
+
+    <span class="c1"># Calculate the loglikelihood</span>
+    <span class="n">loglike</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">loglike</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">discount_rate</span><span class="p">,</span> <span class="n">capital_share</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">meas_vars</span><span class="p">])</span>
+
+    <span class="c1"># 4. Metropolis-step for the discount rate</span>
+    <span class="n">discount_param</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">proposal_param</span> <span class="o">=</span> <span class="n">discount_param</span> <span class="o">+</span> <span class="n">rw_discount</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+    <span class="n">proposal_rate</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">proposal_param</span> <span class="o">/</span> <span class="mi">100</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">proposal_rate</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">proposal_loglike</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">loglike</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">proposal_rate</span><span class="p">,</span> <span class="n">capital_share</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">meas_vars</span><span class="p">])</span>
+        <span class="n">acceptance_probability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="n">proposal_loglike</span> <span class="o">-</span> <span class="n">loglike</span> <span class="o">+</span>
+            <span class="n">prior_discount</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">proposal_param</span><span class="p">)</span> <span class="o">-</span>
+            <span class="n">prior_discount</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">discount_param</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">acceptance_probability</span> <span class="o">&gt;</span> <span class="n">uniform</span><span class="o">.</span><span class="n">rvs</span><span class="p">():</span>
+            <span class="n">discount_param</span> <span class="o">=</span> <span class="n">proposal_param</span>
+            <span class="n">discount_rate</span> <span class="o">=</span> <span class="n">proposal_rate</span>
+            <span class="n">loglike</span> <span class="o">=</span> <span class="n">proposal_loglike</span>
+            <span class="n">trace_accepts</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">discount_param</span>
+
+    <span class="c1"># 5. Metropolis-step for the capital-share</span>
+    <span class="n">proposal</span> <span class="o">=</span> <span class="n">capital_share</span> <span class="o">+</span> <span class="n">rw_cap_share</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">proposal</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">proposal</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">proposal_loglike</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">loglike</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">discount_rate</span><span class="p">,</span> <span class="n">proposal</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">meas_vars</span><span class="p">])</span>
+        <span class="n">acceptance_probability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="n">proposal_loglike</span> <span class="o">-</span> <span class="n">loglike</span> <span class="o">+</span>
+            <span class="n">prior_cap_share</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">proposal</span><span class="p">)</span> <span class="o">-</span>
+            <span class="n">prior_cap_share</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">capital_share</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">acceptance_probability</span> <span class="o">&gt;</span> <span class="n">uniform</span><span class="o">.</span><span class="n">rvs</span><span class="p">():</span>
+            <span class="n">capital_share</span> <span class="o">=</span> <span class="n">proposal</span>
+            <span class="n">trace_accepts</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">loglike</span> <span class="o">=</span> <span class="n">proposal_loglike</span>
+    <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">capital_share</span>
+
+    <span class="c1"># 6. Metropolis-step for the measurement errors</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">meas_std</span> <span class="o">=</span> <span class="n">meas_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mf">0.5</span>
+        <span class="n">proposal</span> <span class="o">=</span> <span class="n">meas_std</span> <span class="o">+</span> <span class="n">rw_meas_err</span><span class="o">.</span><span class="n">rvs</span><span class="p">()</span>
+        <span class="n">proposal_vars</span> <span class="o">=</span> <span class="n">meas_vars</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">proposal_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">proposal</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">if</span> <span class="n">proposal</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">proposal_loglike</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">loglike</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">discount_rate</span><span class="p">,</span> <span class="n">capital_share</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">sigma2</span><span class="p">,</span> <span class="n">proposal_vars</span><span class="p">])</span>
+            <span class="n">acceptance_probability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+                <span class="n">proposal_loglike</span> <span class="o">-</span> <span class="n">loglike</span> <span class="o">+</span>
+                <span class="n">prior_meas_err</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">proposal</span><span class="p">)</span> <span class="o">-</span>
+                <span class="n">prior_meas_err</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">meas_std</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">acceptance_probability</span> <span class="o">&gt;</span> <span class="n">uniform</span><span class="o">.</span><span class="n">rvs</span><span class="p">():</span>
+                <span class="n">meas_std</span> <span class="o">=</span> <span class="n">proposal</span>
+                <span class="n">trace_accepts</span><span class="p">[</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">loglike</span> <span class="o">=</span> <span class="n">proposal_loglike</span>
+                <span class="n">meas_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">proposal_vars</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">trace</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="mi">4</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">meas_std</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="10-appendix-B.html" title="Appendix B: Inherited attributes and methods"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Chad Fulton.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.4.4.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

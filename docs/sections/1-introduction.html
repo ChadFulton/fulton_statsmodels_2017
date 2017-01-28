@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/solar.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation" href="../index.html" />
+    <link rel="next" title="State space models" href="2-state_space_models.html" />
+    <link rel="prev" title="Abstract" href="0-abstract.html" /><!--<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro|Open+Sans:300italic,400italic,700italic,400,300,700' rel='stylesheet' type='text/css'>-->
+<link href="../_static/google-fonts.css" rel="stylesheet">
+<link href="../_static/solarized-dark.css" rel="stylesheet">
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="2-state_space_models.html" title="State space models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="0-abstract.html" title="Abstract"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="0-abstract.html"
+                        title="previous chapter">Abstract</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="2-state_space_models.html"
+                        title="next chapter">State space models</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/sections/1-introduction.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>The class of time series models that can be represented in state space form,
+allowing parameter estimation and inference, is very broad. Many of the most
+widespread reduced form time series models fall into this class, including
+autoregressive integrated moving average (ARIMA), vector autoregressions
+(VARs), unobserved components (UC), time-varying parameters (TVP),
+and dynamic factor (DFM) models. Furthermore, linear (or linearized) structural
+models are often amenable to representation in this form, including the
+important case of linearized DSGE models. This paper contributes to the
+literature on practical results related to the estimation of linear, Gaussian
+state space models and the corresponding class of time series models.</p>
+<p>The great advantage of representing a time series as a linear, Gaussian state
+space model is due to existence of the celebrated Kalman filter
+(<a class="reference internal" href="9-references.html#kalman-new-1960" id="id1">[15]</a>), which at once provides optimal contempraneous
+estimates of unobserved state variables and also permits evaluation of the
+likelihood of the model. Subsequent developments have produced a range of
+smoothers and computational techniques which makes feasible a estimation even
+in the case of large datasets and complicated models. Elegant theoretical
+results can be developed quite generically and applied to any of the models in
+the state space class.</p>
+<p>Mirroring this theoretical conservation of effort is the possibility of a
+practical conservation: appropriately designed computer programs that perform
+estimation and inference can be written generically in terms of the state space
+form and then applied to any of models which fall into that class. Not only is
+it inefficient for each practitioner to separately implement the same
+features, it is unreasonable to expect that everyone devote potentially
+large amounts of time to produce high-performance, well-tested computer
+programs, particularly when their comparative advantage lies elsewhere. This
+paper describes a method for achieving this practical conservation of effort by
+making use of so-called object oriented programming, with an accompanying
+implementation in the Python programming language. <a class="footnote-reference" href="#id8" id="id2">[1]</a></p>
+<p>Time series analysis by state space methods is present in nearly every
+statistical software package, including commercial packages like Stata and
+E-views, commercial compuational environments such as MATLAB, and open-source
+programming languages including R and gretl. A recent special volume
+of the Journal of Statistical Software was devoted to software implementations
+of state space models; see <a class="reference internal" href="9-references.html#commandeur-statistical-2011" id="id3">[7]</a> for the
+introductory article and a list of references. This is also not the first
+implementation of Kalman filtering and smoothing routines in Python; although
+many packages at various stages of development exist, one notable reference is
+the PySSM package presented in <a class="reference internal" href="9-references.html#strickland-pyssm-2014" id="id4">[31]</a>.</p>
+<p>Relative to these libraries, this package has several important features.
+First, although several of the libraries mentioned above (including the Python
+implementation) use object-oriented techniques in their internal code, this is
+the first implementation to emphasize those techniques for users of the
+library. As described throughout the paper, this can yield substantial time
+saving on the part of users, by providing a unified interface to the state
+space model rather than a collection of disparate functions.</p>
+<p>Second, it is the first implementation to emphasize interaction with an
+existing ecosystem of well-estabilished scientific libraries. Since state space estimation is a component of the larger Statsmodels package
+(<a class="reference internal" href="9-references.html#seabold-statsmodels-2010" id="id5">[28]</a>), users automatically have available many
+other econometric and statistical models and functions (in this way,
+Statsmodels is somewhat similar to, for example, Stata). It also has links to
+other packages; for example, in section 6 we describe Metropolis-Hastings
+posterior simulation using the Python package PyMC.</p>
+<p>One practically important manifestation of the tighter integration of
+Statsmodels with the Python ecosystem is that this package is easy to install
+and does not require the user to compile code themselves (as does for example
+PySSM). Furthermore, while PySSM also uses compiled code for the performance
+critical filtering and smoothing operations, in this package these routines are
+written in a close variant of Python (see below for more details on &#8220;Cython&#8221;).
+This means that the underlying code is easier to understand and debug and that
+a tighter integration can be achieved between user-code and compiled-code.</p>
+<p>Finally, it incorporates recent advances in state space model estimation,
+including the collapsed filtering approach of
+<a class="reference internal" href="9-references.html#jungbacker-likelihood-based-2014" id="id6">[14]</a>, and makes available flexible classes
+for specifying and estimating four of the most popular time series models:
+SARIMAX, unobserved components, VARMAX, and dynamic factor models.</p>
+<p>One note is warranted about the Python code presented in this paper. In Python,
+most functionality is provided by packages not necessarily loaded by default.
+To use these packages in your code, you must first &#8220;import&#8221; them. In all the
+code that follows, we will assume the following imports have already been made</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>
+</pre></div>
+</div>
+<p>Any additional imports will be explicitly provided in the example code.
+In any code with simulations we assume that the following code has been used to
+set the seed for the pseudo-random number generator: <code class="docutils literal"><span class="pre">np.random.seed(17429)</span></code>.</p>
+<p>The remainder of the paper is as follows. Section 2 gives an overview of the
+linear, Gaussian state space model along with the Kalman filter, state smoother,
+disturbance smoother, and simulation smoother, and presents several examples
+of time series models in state space form. Section 3 describes the
+representation in Python of the state space model, and provides sample code for
+each of the example models. Sections 4 and 5 describe the estimation of unknown
+system parameters by maximum likelihood (MLE) and Markov chain Monte Carlo
+(MCMC) methods, respectively, and show the application to the
+example models. Up to this point, the paper has been concerned with the
+implementation of custom state space models. However Statsmodels also contains
+a number of out-of-the-box models and these are described in section 6.
+Section 7 concludes. <a class="footnote-reference" href="#id9" id="id7">[2]</a></p>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>Among others, the programming environments MATLAB and R also support
+object oriented programming; the implementation described here could
+therefore, in principle, be migrated to those languages.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[2]</a></td><td>For instructions on the installation of this package, see
+<a class="reference internal" href="10-appendix-A.html#appendix-a"><span class="std std-ref">Appendix A: Installation</span></a>. Full documentation for the package is available at
+<a class="reference external" href="http://www.statsmodels.org">http://www.statsmodels.org</a>.</td></tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="2-state_space_models.html" title="State space models"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="0-abstract.html" title="Abstract"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">State Space Estimation of Time Series Models in Python: Statsmodels 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Chad Fulton.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.4.4.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>
