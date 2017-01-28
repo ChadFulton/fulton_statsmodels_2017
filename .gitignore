@@ -1,0 +1,10 @@
+.DS_Store
+.ipynb_checkpoints/
+*.pyc
+paper/build/doctrees/
+paper/build/latex/
+paper/build/html/
+paper/source/sections/code/run_all_stderr.txt
+paper/source/sections/code/run_all_stdout.txt
+paper/source/sections/images/
+paper/source/sections/output/
