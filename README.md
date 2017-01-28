@@ -1,8 +1,8 @@
-State Space Estimation of Time Series Models in Python: Statsmodels
-===================================================================
+Estimating time series models by state space methods in Python: Statsmodels
+===========================================================================
 
 This repository houses the source and Python scripts producing the paper
-"State Space Estimation of Time Series Models in Python: Statsmodels".
+"Estimating time series models by state space methods in Python: Statsmodels".
 
 Paper PDF
 ---------
